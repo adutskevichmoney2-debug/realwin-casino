@@ -223,6 +223,17 @@ window.CLOUD = null;
    const {data}=await sb.from('devices').select('*, profiles(username,email)').order('last_seen',{ascending:false}).limit(500);
    return data||[];
   },
+  async adminUserCard(uid){
+   const [pr,wl,tx,bt,dv,tk]=await Promise.all([
+    sb.from('profiles').select('*').eq('id',uid).single(),
+    sb.from('wallets').select('coin,balance').eq('user_id',uid),
+    sb.from('transactions').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(250),
+    sb.from('bets').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(120),
+    sb.from('devices').select('*').eq('user_id',uid).order('last_seen',{ascending:false}).limit(20),
+    sb.from('support_tickets').select('*').eq('user_id',uid).order('updated_at',{ascending:false}).limit(20)
+   ]);
+   return {p:pr.data||null, wl:wl.data||[], tx:tx.data||[], bets:bt.data||[], devices:dv.data||[], tickets:tk.data||[]};
+  },
   async adminTx(){
    const {data} = await sb.from('transactions').select('*, profiles(username)').order('created_at',{ascending:false}).limit(200);
    return data || [];

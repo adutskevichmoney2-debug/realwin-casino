@@ -1048,7 +1048,8 @@ en:{
  'tk.title':'My tickets','tk.new':'New ticket','tk.empty':'No tickets yet','tk.open':'Open','tk.answered':'Answered','tk.closed':'Closed','tk.reply':'Reply','tk.created':'Ticket created — the reply will appear in this section','tk.staff':'Support','tk.you':'You',
  'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment',
  'lnk.title':'Check your inbox','lnk.sub':'We sent an email to {e}. Click the confirmation button inside — this tab will sign in automatically.','lnk.waiting':'Waiting for confirmation…',
- 'adm.devices':'Devices','adm.multi':'Possible multi-accounts (same device)','adm.nomulti':'No matches found','adm.device':'Device','adm.lastseen':'Last seen','adm.users2':'acc'
+ 'adm.devices':'Devices','adm.multi':'Possible multi-accounts (same device)','adm.nomulti':'No matches found','adm.device':'Device','adm.lastseen':'Last seen','adm.users2':'acc',
+ 'adm.search':'Search: email, name or player ID','adm.open':'Open','adm.card':'Player card','adm.balances':'Balances','adm.deposits':'Deposits','adm.withdrawals':'Withdrawals','adm.nodata':'No data'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -1103,7 +1104,8 @@ ru:{
  'tk.title':'Мои обращения','tk.new':'Новое обращение','tk.empty':'Обращений пока нет','tk.open':'Открыт','tk.answered':'Есть ответ','tk.closed':'Закрыт','tk.reply':'Ответить','tk.created':'Обращение создано — ответ появится в этом разделе','tk.staff':'Поддержка','tk.you':'Вы',
  'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка',
  'lnk.title':'Проверьте почту','lnk.sub':'Мы отправили письмо на {e}. Нажмите кнопку подтверждения в письме — эта вкладка войдёт автоматически.','lnk.waiting':'Ожидаем подтверждение…',
- 'adm.devices':'Устройства','adm.multi':'Возможные мультиакки (одно устройство)','adm.nomulti':'Совпадений не найдено','adm.device':'Устройство','adm.lastseen':'Был','adm.users2':'акк'
+ 'adm.devices':'Устройства','adm.multi':'Возможные мультиакки (одно устройство)','adm.nomulti':'Совпадений не найдено','adm.device':'Устройство','adm.lastseen':'Был','adm.users2':'акк',
+ 'adm.search':'Поиск: email, имя или ID игрока','adm.open':'Открыть','adm.card':'Досье игрока','adm.balances':'Балансы','adm.deposits':'Депозиты','adm.withdrawals':'Выводы','adm.nodata':'Нет данных'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
@@ -1571,6 +1573,17 @@ window.CLOUD = null;
   async adminDevices(){
    const {data}=await sb.from('devices').select('*, profiles(username,email)').order('last_seen',{ascending:false}).limit(500);
    return data||[];
+  },
+  async adminUserCard(uid){
+   const [pr,wl,tx,bt,dv,tk]=await Promise.all([
+    sb.from('profiles').select('*').eq('id',uid).single(),
+    sb.from('wallets').select('coin,balance').eq('user_id',uid),
+    sb.from('transactions').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(250),
+    sb.from('bets').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(120),
+    sb.from('devices').select('*').eq('user_id',uid).order('last_seen',{ascending:false}).limit(20),
+    sb.from('support_tickets').select('*').eq('user_id',uid).order('updated_at',{ascending:false}).limit(20)
+   ]);
+   return {p:pr.data||null, wl:wl.data||[], tx:tx.data||[], bets:bt.data||[], devices:dv.data||[], tickets:tk.data||[]};
   },
   async adminTx(){
    const {data} = await sb.from('transactions').select('*, profiles(username)').order('created_at',{ascending:false}).limit(200);
@@ -2537,7 +2550,7 @@ Views.profile=function(tab){
   box.innerHTML=`<div class="card rv in" style="margin-bottom:16px"><div class="phead">
    <label class="avup" title="${t('set.avatar.up')}">${avatarHTML(u)}<span class="cam">${ic('upload',20)}</span><input type="file" class="js-avf" accept="image/*" hidden></label>
    <div style="flex:1;min-width:0"><h2 style="font-size:21px">${esc(u.name)}</h2><div class="dim" style="font-size:12.5px">${t('prof.joined',{d:new Date(u.created).toLocaleDateString(S.lang==='ru'?'ru-RU':'en-US',{month:'long',year:'numeric'})})}</div>
-   <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><span class="badge blue">${ic('gem',11)} ${vipLevel(u.wagered).name()}</span>
+   <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${u.cloud?`<button class="badge gray js-pid" style="cursor:pointer" title="${t('a.copy')}">ID ${esc(u.id.slice(0,8).toUpperCase())} ${ic('copy',10)}</button>`:''}<span class="badge blue">${ic('gem',11)} ${vipLevel(u.wagered).name()}</span>
    <span class="badge ${u.verif.status==='ok'?'green':u.verif.status==='pending'?'yellow':'gray'}">${ic('shield',11)} ${t('kyc.status.'+(u.verif.status==='ok'?'ok':u.verif.status==='pending'?'pending':'none'))}</span></div></div></div>
    <div class="prg"><i style="width:${prog}%"></i></div>
    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;font-weight:700;color:var(--tx3)"><span>${t('prof.level')}: ${lvl.name()}</span>${lvl.i<VIPS.length-1?`<span>${t('prof.tolevel',{a:fusd(Math.max(0,next.req-u.wagered)),l:next.name()})}</span>`:''}</div></div>
@@ -2549,6 +2562,8 @@ Views.profile=function(tab){
   <div class="card rv in"><div class="sect-h" style="margin-bottom:8px"><h2 style="font-size:16px">${t('prof.recent')}</h2></div>${betsTable(u.bets.slice(0,8))}</div>`;
   const avf=$('.js-avf',box);
   if(avf)avf.onchange=()=>setAvatarFromFile(avf.files[0],()=>P.overview());
+  const pid=$('.js-pid',box);
+  if(pid)pid.onclick=()=>copyText(u.id.slice(0,8).toUpperCase());
  };
  function betsTable(list){
   if(!list.length)return `<div class="empty">${ic('dice',30)}<div class="t">${t('prof.nobets')}</div></div>`;
@@ -2831,17 +2846,77 @@ Views.admin=function(){
   <div class="tabs rv in" style="margin-bottom:18px"><button class="tab act" data-t="users">${t('adm.users')}</button><button class="tab" data-t="tickets">${t('adm.tickets')}</button><button class="tab" data-t="tx">${t('adm.tx')}</button><button class="tab" data-t="devices">${t('adm.devices')}</button></div>
   <div class="card js-abody" style="padding:8px 6px"><div class="empty">${ic('refresh',30)}</div></div>`;
  const box=$('.js-abody');
+ let USERS_CACHE=[];
  async function rUsers(){
-  const us=await CLOUD.adminUsers();
-  box.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('auth.username')}</th><th>Email</th><th>${t('adm.role')}</th><th>${t('adm.balance')}</th><th>${t('prof.wagered')}</th><th>${t('tx.date')}</th><th></th></tr></thead><tbody>
-  ${us.map(u2=>`<tr><td style="font-weight:800">${esc(u2.username)} ${u2.banned?'<span class="badge red">BAN</span>':''}</td><td class="dim" style="font-size:12px">${esc(u2.email)}</td>
-   <td><span class="badge ${u2.role==='admin'?'blue':u2.role==='moderator'?'yellow':'gray'}">${u2.role}</span></td>
-   <td class="mono" style="font-weight:700">${fusd(u2.usd)}</td><td class="mono muted">${fusd(+u2.wagered)}</td>
-   <td class="dim" style="font-size:12px">${dts(Date.parse(u2.created_at))}</td>
-   <td style="white-space:nowrap"><button class="tailbtn js-adj" data-u="${u2.id}" data-n="${esc(u2.username)}">${t('adm.adjust')}</button>${u2.role==='player'?`<button class="tailbtn js-ban" data-u="${u2.id}" data-b="${u2.banned?0:1}" style="margin-left:6px;color:${u2.banned?'#5BD98F':'#F0898D'}">${u2.banned?t('adm.unban'):t('adm.ban')}</button>`:''}</td></tr>`).join('')}
-  </tbody></table></div>`;
-  $$('.js-adj',box).forEach(b=>b.onclick=()=>openAdjust(b.dataset.u,b.dataset.n));
-  $$('.js-ban',box).forEach(b=>b.onclick=()=>CLOUD.adminBan(b.dataset.u,b.dataset.b==='1').then(r=>{if(r.error)toast('err',r.error);else{toast('ok','OK');rUsers()}}));
+  USERS_CACHE=await CLOUD.adminUsers();
+  box.innerHTML=`<div style="padding:8px 8px 14px"><div class="fwrap">${ic('search',15)}<input class="inp js-usearch" style="height:42px" placeholder="${t('adm.search')}"></div></div><div class="js-utab"></div>`;
+  const draw=q=>{
+   q=(q||'').trim().toLowerCase();
+   const list=USERS_CACHE.filter(u2=>!q||u2.email.toLowerCase().includes(q)||u2.username.toLowerCase().includes(q)||u2.id.toLowerCase().startsWith(q)||u2.id.slice(0,8).toLowerCase()===q);
+   $('.js-utab',box).innerHTML=list.length?`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('auth.username')}</th><th>Email</th><th>ID</th><th>${t('adm.role')}</th><th>${t('adm.balance')}</th><th>${t('prof.wagered')}</th><th></th></tr></thead><tbody>
+   ${list.map(u2=>`<tr class="js-urow" data-u="${u2.id}" style="cursor:pointer"><td style="font-weight:800">${esc(u2.username)} ${u2.banned?'<span class="badge red">BAN</span>':''}</td>
+    <td style="font-size:12.5px;word-break:break-all;min-width:180px;color:var(--tx2)">${esc(u2.email)}</td>
+    <td class="mono dim" style="font-size:11px">${esc(u2.id.slice(0,8).toUpperCase())}</td>
+    <td><span class="badge ${u2.role==='admin'?'blue':u2.role==='moderator'?'yellow':'gray'}">${u2.role}</span></td>
+    <td class="mono" style="font-weight:700">${fusd(u2.usd)}</td><td class="mono muted">${fusd(+u2.wagered)}</td>
+    <td><button class="tailbtn js-open" data-u="${u2.id}">${t('adm.open')}</button></td></tr>`).join('')}
+   </tbody></table></div>`:`<div class="empty">${ic('search',28)}<div class="t">${t('adm.nodata')}</div></div>`;
+   $$('.js-urow',box).forEach(r=>r.onclick=e=>{if(e.target.closest('button'))return;openPlayerCard(r.dataset.u)});
+   $$('.js-open',box).forEach(b=>b.onclick=e=>{e.stopPropagation();openPlayerCard(b.dataset.u)});
+  };
+  $('.js-usearch',box).oninput=e=>draw(e.target.value);
+  draw('');
+ }
+ async function openPlayerCard(uid2){
+  const m=openModal(`<div class="m-body"><div class="empty">${ic('refresh',30)}</div></div>`,{klass:'xl'});
+  const d=await CLOUD.adminUserCard(uid2);
+  if(!d.p){m.close();toast('err',t('cl.err'));return}
+  const p=d.p;
+  const usd=d.wl.reduce((a,w)=>a+(+w.balance)*(RATES[w.coin]||0),0);
+  const depS=d.tx.filter(x=>x.type==='dep').reduce((a,x)=>a+(+x.amount)*(RATES[x.coin]||1),0);
+  const wdS=d.tx.filter(x=>x.type==='wd').reduce((a,x)=>a+Math.abs(+x.amount)*(RATES[x.coin]||1),0);
+  const txRows=d.tx.map(x=>`<tr><td style="font-weight:700">${t('tx.'+x.type)}${x.meta?` <span class="dim" style="font-size:10.5px">\u00b7 ${esc(String(x.meta))}</span>`:''}</td>
+   <td class="mono ${+x.amount>0?'up':''}">${+x.amount>0?'+':''}${fc(+x.amount,x.coin)} ${x.coin}</td>
+   <td class="dim" style="text-align:right;font-size:11.5px;white-space:nowrap">${dts(Date.parse(x.created_at))}</td></tr>`).join('');
+  const betRows=d.bets.map(b=>`<tr><td style="font-weight:700">${esc(b.kind==='sport'?((b.meta&&b.meta.label)||'Sports'):(gameBy(b.game)?gameBy(b.game).name:b.game||'\u2014'))} <span class="badge gray" style="font-size:9px">${b.kind}</span></td>
+   <td class="mono muted">${fc(+b.stake,b.coin)} ${b.coin}</td><td class="mono">${(+b.mult).toFixed(2)}\u00d7</td>
+   <td>${b.status==='open'?`<span class="badge yellow">${t('bets.open')}</span>`:(+b.payout>0?`<span class="badge green">+${fc(+b.payout,b.coin)}</span>`:`<span class="badge red">${t('bets.lost')}</span>`)}</td>
+   <td class="dim" style="text-align:right;font-size:11.5px;white-space:nowrap">${dts(Date.parse(b.created_at))}</td></tr>`).join('');
+  const devRows=d.devices.map(dv=>`<div class="wrow" style="margin-bottom:7px"><span style="min-width:0"><span class="wn" style="font-size:12.5px">${esc((dv.platform||'?')+' \u00b7 '+(dv.screen||''))}</span><br><span class="ws">${esc(dv.tz||'')} \u00b7 IP ${esc(dv.ip||'\u2014')} \u00b7 fp ${esc((dv.fp||'').slice(0,12))}\u2026</span></span><span class="dim" style="margin-left:auto;font-size:11px;flex:none">${dts(Date.parse(dv.last_seen))}</span></div>`).join('');
+  const tkRows=d.tickets.map(tk=>`<div class="wrow" style="cursor:pointer;margin-bottom:7px" data-tk="${tk.id}" data-s="${esc(tk.subject)}"><span class="badge ${tk.status==='answered'?'green':tk.status==='closed'?'gray':'yellow'}" style="flex:none">${t('tk.'+tk.status)}</span><span class="wn" style="margin-left:8px;min-width:0">#${tk.id} \u00b7 ${esc(tk.subject)}</span><span class="dim" style="margin-left:auto;font-size:11px;flex:none">${dts(Date.parse(tk.updated_at))}</span></div>`).join('');
+  $('.m-body',m.el).innerHTML=`
+   <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-right:34px">
+    <span class="avatar" style="width:54px;height:54px;border-radius:16px;font-size:20px;flex:none;background:linear-gradient(135deg,hsl(${p.avatar_hue||210} 70% 55%),hsl(${((p.avatar_hue||210)+40)%360} 70% 38%))">${esc(p.username[0].toUpperCase())}</span>
+    <div style="min-width:0;flex:1">
+     <div style="font-family:var(--fd);font-weight:800;font-size:18px">${esc(p.username)} ${p.banned?'<span class="badge red">BAN</span>':''} <span class="badge ${p.role==='admin'?'blue':p.role==='moderator'?'yellow':'gray'}">${p.role}</span></div>
+     <div class="mono" style="font-size:12.5px;word-break:break-all;color:var(--tx2)">${esc(p.email)}</div>
+     <div class="dim mono" style="font-size:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap">ID <b>${esc(p.id.slice(0,8).toUpperCase())}</b> <button class="tailbtn js-cpid" style="height:22px;padding:0 7px">${ic('copy',11)}</button> <span>\u00b7 ${dts(Date.parse(p.created_at))}</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex:none">
+     <button class="btn sm js-cadj">${t('adm.adjust')}</button>
+     ${p.role==='player'?`<button class="btn sm ${p.banned?'soft':'danger'} js-cban">${p.banned?t('adm.unban'):t('adm.ban')}</button>`:''}
+    </div></div>
+   <div class="pstats" style="margin:18px 0 14px">
+    <div class="stat"><span class="si">${ic('wallet',18)}</span><span><span class="sv">${fusd(usd)}</span><br><span class="sl">${t('adm.balance')}</span></span></div>
+    <div class="stat"><span class="si">${ic('chart',18)}</span><span><span class="sv">${fusd(+p.wagered)}</span><br><span class="sl">${t('prof.wagered')}</span></span></div>
+    <div class="stat"><span class="si">${ic('arrDn',18)}</span><span><span class="sv">${fusd(depS)}</span><br><span class="sl">${t('adm.deposits')}</span></span></div>
+    <div class="stat"><span class="si">${ic('arrUp',18)}</span><span><span class="sv">${fusd(wdS)}</span><br><span class="sl">${t('adm.withdrawals')}</span></span></div>
+   </div>
+   <div class="dd-h" style="padding:6px 2px">${t('adm.balances')}</div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px">${d.wl.filter(w=>+w.balance>0).map(w=>`<span class="chip" style="cursor:default">${w.coin}: <b class="mono">\u00a0${fc(+w.balance,w.coin)}</b></span>`).join('')||`<span class="dim">${t('adm.nodata')}</span>`}</div>
+   <div class="dd-h" style="padding:6px 2px">${t('adm.tx')} (${d.tx.length})</div>
+   <div style="max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:12px;margin:6px 0 16px">${d.tx.length?`<table class="tbl"><tbody>${txRows}</tbody></table>`:`<div class="empty" style="padding:18px">${t('adm.nodata')}</div>`}</div>
+   <div class="dd-h" style="padding:6px 2px">${t('prof.bets')} (${d.bets.length})</div>
+   <div style="max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:12px;margin:6px 0 16px">${d.bets.length?`<table class="tbl"><tbody>${betRows}</tbody></table>`:`<div class="empty" style="padding:18px">${t('adm.nodata')}</div>`}</div>
+   <div class="dd-h" style="padding:6px 2px">${t('adm.devices')} (${d.devices.length})</div>
+   <div style="margin:6px 0 16px">${devRows||`<span class="dim">${t('adm.nodata')}</span>`}</div>
+   <div class="dd-h" style="padding:6px 2px">${t('adm.tickets')} (${d.tickets.length})</div>
+   <div style="margin:6px 0 4px">${tkRows||`<span class="dim">${t('adm.nodata')}</span>`}</div>`;
+  $('.js-cpid',m.el).onclick=()=>copyText(p.id.slice(0,8).toUpperCase());
+  $('.js-cadj',m.el).onclick=()=>openAdjust(p.id,p.username);
+  const cb=$('.js-cban',m.el);
+  if(cb)cb.onclick=()=>CLOUD.adminBan(p.id,!p.banned).then(r=>{if(r.error){toast('err',r.error);return}toast('ok','OK');m.close();rUsers()});
+  $$('[data-tk]',m.el).forEach(r=>r.onclick=()=>openTicketThread(+r.dataset.tk,'#'+r.dataset.tk+' \u00b7 '+r.dataset.s,true));
  }
  function openAdjust(uid2,name){
   const m=openModal(`<div class="m-body"><div class="m-title" style="font-size:17px">${t('adm.adjust')} · ${esc(name)}</div>

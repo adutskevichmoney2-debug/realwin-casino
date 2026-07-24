@@ -161,7 +161,8 @@ en:{
  'tk.title':'My tickets','tk.new':'New ticket','tk.empty':'No tickets yet','tk.open':'Open','tk.answered':'Answered','tk.closed':'Closed','tk.reply':'Reply','tk.created':'Ticket created — the reply will appear in this section','tk.staff':'Support','tk.you':'You',
  'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment',
  'lnk.title':'Check your inbox','lnk.sub':'We sent an email to {e}. Click the confirmation button inside — this tab will sign in automatically.','lnk.waiting':'Waiting for confirmation…',
- 'adm.devices':'Devices','adm.multi':'Possible multi-accounts (same device)','adm.nomulti':'No matches found','adm.device':'Device','adm.lastseen':'Last seen','adm.users2':'acc'
+ 'adm.devices':'Devices','adm.multi':'Possible multi-accounts (same device)','adm.nomulti':'No matches found','adm.device':'Device','adm.lastseen':'Last seen','adm.users2':'acc',
+ 'adm.search':'Search: email, name or player ID','adm.open':'Open','adm.card':'Player card','adm.balances':'Balances','adm.deposits':'Deposits','adm.withdrawals':'Withdrawals','adm.nodata':'No data'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -216,7 +217,8 @@ ru:{
  'tk.title':'Мои обращения','tk.new':'Новое обращение','tk.empty':'Обращений пока нет','tk.open':'Открыт','tk.answered':'Есть ответ','tk.closed':'Закрыт','tk.reply':'Ответить','tk.created':'Обращение создано — ответ появится в этом разделе','tk.staff':'Поддержка','tk.you':'Вы',
  'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка',
  'lnk.title':'Проверьте почту','lnk.sub':'Мы отправили письмо на {e}. Нажмите кнопку подтверждения в письме — эта вкладка войдёт автоматически.','lnk.waiting':'Ожидаем подтверждение…',
- 'adm.devices':'Устройства','adm.multi':'Возможные мультиакки (одно устройство)','adm.nomulti':'Совпадений не найдено','adm.device':'Устройство','adm.lastseen':'Был','adm.users2':'акк'
+ 'adm.devices':'Устройства','adm.multi':'Возможные мультиакки (одно устройство)','adm.nomulti':'Совпадений не найдено','adm.device':'Устройство','adm.lastseen':'Был','adm.users2':'акк',
+ 'adm.search':'Поиск: email, имя или ID игрока','adm.open':'Открыть','adm.card':'Досье игрока','adm.balances':'Балансы','adm.deposits':'Депозиты','adm.withdrawals':'Выводы','adm.nodata':'Нет данных'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
