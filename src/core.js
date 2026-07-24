@@ -154,7 +154,8 @@ en:{
  'misc.balance':'Balance','misc.currency':'Currency','misc.today':'today','misc.yesterday':'yesterday','misc.justnow':'just now','misc.min':'{n} min ago','misc.hr':'{n} h ago','misc.demo':'DEMO','misc.new':'NEW','misc.hot':'HOT','misc.exclusive':'EXCLUSIVE','misc.results':'Results','misc.of':'of',
  'promo.code.t':'Have a promo code?','promo.code.s':'Activate it and get an instant bonus to your balance','promo.code.ph':'Enter promo code','promo.code.btn':'Activate','promo.code.ok':'Promo code activated: +{a} USDT','promo.code.bad':'Code not found or already used',
  'pv.note.t':'Provider game','pv.note.b':'"{name}" by {prov} connects through the provider API at production launch. In this demo build, RealWin Originals are fully playable.','pv.open':'Open game','pv.playable':'Playable right now',
- 'set.avatar':'Avatar','set.avatar.s':'JPG or PNG, stored in your browser','set.avatar.up':'Upload','set.avatar.rm':'Remove','set.avatar.ok':'Avatar updated'
+ 'set.avatar':'Avatar','set.avatar.s':'JPG or PNG, stored in your browser','set.avatar.up':'Upload','set.avatar.rm':'Remove','set.avatar.ok':'Avatar updated',
+ 'sp.featured':'Top picks','sp.winner':'Match winner','sp.draw':'Draw'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -202,7 +203,8 @@ ru:{
  'misc.balance':'Баланс','misc.currency':'Валюта','misc.today':'сегодня','misc.yesterday':'вчера','misc.justnow':'только что','misc.min':'{n} мин назад','misc.hr':'{n} ч назад','misc.demo':'ДЕМО','misc.new':'NEW','misc.hot':'HOT','misc.exclusive':'ЭКСКЛЮЗИВ','misc.results':'Результаты','misc.of':'из',
  'promo.code.t':'Есть промокод?','promo.code.s':'Активируйте его и получите мгновенный бонус на баланс','promo.code.ph':'Введите промокод','promo.code.btn':'Активировать','promo.code.ok':'Промокод активирован: +{a} USDT','promo.code.bad':'Код не найден или уже использован',
  'pv.note.t':'Игра провайдера','pv.note.b':'«{name}» от {prov} подключается через API провайдера при боевом запуске платформы. В демо-сборке полностью играбельны эксклюзивы RealWin Originals.','pv.open':'Открыть игру','pv.playable':'Играбельно сейчас',
- 'set.avatar':'Аватар','set.avatar.s':'JPG или PNG, хранится в вашем браузере','set.avatar.up':'Загрузить','set.avatar.rm':'Убрать','set.avatar.ok':'Аватар обновлён'
+ 'set.avatar':'Аватар','set.avatar.s':'JPG или PNG, хранится в вашем браузере','set.avatar.up':'Загрузить','set.avatar.rm':'Убрать','set.avatar.ok':'Аватар обновлён',
+ 'sp.featured':'Лучший выбор','sp.winner':'Исход матча','sp.draw':'Ничья'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};

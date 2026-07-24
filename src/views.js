@@ -255,47 +255,70 @@ Views.affiliate=function(){
 let BETSLIP=[];
 Views.sports=function(){
  let sport=SPORTS[0].id;
+ const loc=()=>S.lang==='ru'?'ru-RU':'en-US';
+ const fmtT=ts=>{const d=new Date(ts);return d.toLocaleDateString(loc(),{day:'numeric',month:'short'})+' \u00b7 '+d.toLocaleTimeString(loc(),{hour:'2-digit',minute:'2-digit',hour12:false})};
  outlet().innerHTML=`${pageHead(t('sp.title'),t('sp.sub'))}
  <div class="swrap">
-  <div>
+  <div style="min-width:0">
    <div class="sptabs rv in">${SPORTS.map(s=>{const liveN=s.leagues.flatMap(l=>l.ms).filter(m=>m.live).length;
      return `<button class="sptab ${s.id===sport?'act':''}" data-s="${s.id}">${ic(s.ic,22)}<span>${t(s.nk)}</span>${liveN?`<span class="badge red live">${liveN}</span>`:''}</button>`}).join('')}</div>
+   <div class="feat-wrap rv in"><div class="m2-lbl" style="margin:0 2px 10px;display:flex;align-items:center;gap:7px">${ic('flame',13)} ${t('sp.featured')}</div><div class="feat-row js-feat"></div></div>
    <div class="js-matches"></div>
   </div>
   <div><div class="card betslip js-slip"></div></div>
  </div>
  <button class="bs-fab js-bsfab">${ic('file',18)} ${t('sp.betslip')} <span class="n js-fabn" style="background:#fff;color:var(--acc);border-radius:6px;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">0</span></button>`;
- const mbox=$('.js-matches');
- function oddBtn(m,k){
-  const sel=BETSLIP.some(s=>s.mid===m.id&&s.pick===k);
-  const label={1:'1',X:'X',2:'2'}[k];
-  return `<button class="oddb ${sel?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="ol">${label}</span><span class="ov">${m.odds[k].toFixed(2)}</span></button>`}
+ const mbox=$('.js-matches'),featBox=$('.js-feat');
+ const selHas=(mid,k)=>BETSLIP.some(s=>s.mid===mid&&s.pick===k);
+ function addSel(mid,k){
+  const f=findMatch(mid);if(!f)return;const m=f.m;
+  const i=BETSLIP.findIndex(s=>s.mid===mid&&s.pick===k);
+  if(i>=0)BETSLIP.splice(i,1);
+  else{BETSLIP=BETSLIP.filter(s=>s.mid!==mid);
+   BETSLIP.push({mid,pick:k,odds:m.odds[k],label:`${m.h.n} \u2014 ${m.a.n}`,pickName:k==='1'?m.h.n:k==='2'?m.a.n:t('sp.draw'),live:!!m.live})}
+  renderAll();renderSlip()}
+ const dot=tm=>`<span class="tdot" style="background:${tm.c}">${esc(tm.n.slice(0,2).toUpperCase())}</span>`;
+ function oddBtn2(m,k){const lbl=k==='1'?m.h.n:k==='2'?m.a.n:t('sp.draw');
+  return `<button class="odd2 ${selHas(m.id,k)?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="on2">${esc(lbl)}</span><span class="ov2">${m.odds[k].toFixed(2)}</span></button>`}
  function matchHTML(m){
-  const dot=tm=>`<span class="tdot" style="background:${tm.c}">${esc(tm.n.slice(0,2).toUpperCase())}</span>`;
-  const time=m.live?`<span class="badge red live">${t('sp.live')}</span><div class="t" style="margin-top:4px">${t('sp.min',{n:m.live.min})}</div>`
-   :`<div class="d">${new Date(m.ts).toLocaleDateString(S.lang==='ru'?'ru-RU':'en-US',{day:'numeric',month:'short'})}</div><div class="t">${new Date(m.ts).toLocaleTimeString(S.lang==='ru'?'ru-RU':'en-US',{hour:'2-digit',minute:'2-digit'})}</div>`;
-  return `<div class="match" data-mid="${m.id}"><div class="mtime">${time}</div>
-   <div class="teams"><div class="team">${dot(m.h)}<span>${esc(m.h.n)}</span>${m.live?`<span class="score">${m.live.hs}</span>`:''}</div>
-   <div class="team">${dot(m.a)}<span>${esc(m.a.n)}</span>${m.live?`<span class="score">${m.live.as}</span>`:''}</div></div>
-   <div class="modds">${Object.keys(m.odds).map(k=>oddBtn(m,k)).join('')}</div></div>`}
+  const time=m.live?`<span class="badge red live">${t('sp.live')} \u00b7 ${t('sp.min',{n:m.live.min})}</span>`:`<span class="badge gray">${fmtT(m.ts)}</span>`;
+  return `<div class="match2">
+   <div class="m2-info">${time}
+    <div class="m2-team">${dot(m.h)}<span class="tn2">${esc(m.h.n)}</span>${m.live?`<b class="sc2">${m.live.hs}</b>`:''}</div>
+    <div class="m2-team">${dot(m.a)}<span class="tn2">${esc(m.a.n)}</span>${m.live?`<b class="sc2">${m.live.as}</b>`:''}</div></div>
+   <div class="m2-mkt"><div class="m2-lbl">${t('sp.winner')}</div>
+    <div class="m2-odds">${['1','X','2'].filter(k=>m.odds[k]).map(k=>oddBtn2(m,k)).join('')}</div></div></div>`}
+ function renderFeatured(){
+  const feats=[];
+  SPORTS.forEach(s=>s.leagues.forEach(l=>l.ms.forEach(m=>{if(m.live)feats.push({m,l})})));
+  SPORTS[0].leagues.forEach(l=>l.ms.forEach(m=>{if(!m.live&&m.id==='f4')feats.push({m,l})}));
+  featBox.innerHTML=feats.slice(0,4).map(({m,l})=>{
+   const k=(m.odds['1']<=m.odds['2'])?'1':'2';const fav=k==='1'?m.h:m.a;
+   return `<div class="feat">
+    <div class="feat-top">${m.live?`<span class="badge red live">${t('sp.live')} ${m.live.min}\u2032</span>`:`<span class="badge gray">${fmtT(m.ts)}</span>`}<span class="feat-n">${ic('users',12)} ${nf.format(1200+(m.id.charCodeAt(1)*137)%3800)}</span></div>
+    <div class="feat-league">${ic('trophy',12)} ${esc(l.name)}</div>
+    <div class="feat-teams">${dot(m.h)}${dot(m.a)}<span>${esc(m.h.n)} \u2014 ${esc(m.a.n)}</span></div>
+    <button class="odd2 feat-odd ${selHas(m.id,k)?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="on2">${esc(fav.n)}</span><span class="ov2">${m.odds[k].toFixed(2)}</span></button></div>`}).join('');
+  bindOdds(featBox)}
+ function bindOdds(root){$$('.odd2',root).forEach(b=>b.onclick=()=>addSel(b.dataset.m,b.dataset.k))}
  function renderMatches(){
   const s=SPORTS.find(x=>x.id===sport);
-  mbox.innerHTML=s.leagues.map(l=>`<div class="league rv in"><div class="league-h">${ic('trophy',14)} ${esc(l.name)}</div>${l.ms.map(matchHTML).join('')}</div>`).join('');
-  $$('.oddb',mbox).forEach(b=>b.onclick=()=>{
-   const {m}=findMatch(b.dataset.m);const k=b.dataset.k;
-   const i=BETSLIP.findIndex(s=>s.mid===m.id&&s.pick===k);
-   if(i>=0)BETSLIP.splice(i,1);
-   else{BETSLIP=BETSLIP.filter(s=>s.mid!==m.id);
-    BETSLIP.push({mid:m.id,pick:k,odds:m.odds[k],label:`${m.h.n} — ${m.a.n}`,pickName:k==='1'?m.h.n:k==='2'?m.a.n:'X',live:!!m.live})}
-   renderMatches();renderSlip()})}
+  const closed=new Set($$('.league.closed',mbox).map(el=>el.dataset.ln));
+  mbox.innerHTML=s.leagues.map(l=>`<div class="league rv in ${closed.has(l.name)?'closed':''}" data-ln="${esc(l.name)}">
+   <button class="lg-h">${ic('trophy',14)}<span>${esc(l.name)}</span><span class="badge blue">${l.ms.length}</span>${ic('chevD',15,'lg-ch')}</button>
+   <div class="lg-b">${l.ms.map(matchHTML).join('')}</div></div>`).join('');
+  bindOdds(mbox);
+  $$('.lg-h',mbox).forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('closed'));
+ }
+ function renderAll(){renderFeatured();renderMatches()}
  function renderSlip(){
   const slip=$('.js-slip');
   $('.js-fabn').textContent=BETSLIP.length;
-  if(!BETSLIP.length){slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">0</span></div><div class="empty" style="padding:30px 10px">${ic('target',30)}<div class="t">${t('sp.empty')}</div></div>${openBetsHTML()}`;bindOpenBets();return}
+  if(!BETSLIP.length){slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">0</span></div><div class="empty" style="padding:30px 10px">${ic('target',30)}<div class="t">${t('sp.empty')}</div></div>${openBetsHTML()}`;return}
   const multi=BETSLIP.length>1;
   const multiOdds=BETSLIP.reduce((a,s)=>a*s.odds,1);
   slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">${BETSLIP.length}</span></div>
-   ${BETSLIP.map((s,i)=>`<div class="bs-sel"><div class="bst"><span>${esc(s.pickName)} · <span class="mono" style="color:#8AB4FF">${s.odds.toFixed(2)}</span></span><button class="rm" data-i="${i}">${ic('x',15)}</button></div><div class="bsm">${esc(s.label)}</div>
+   ${BETSLIP.map((s,i)=>`<div class="bs-sel"><div class="bst"><span>${esc(s.pickName)} \u00b7 <span class="mono" style="color:#8AB4FF">${s.odds.toFixed(2)}</span></span><button class="rm" data-i="${i}">${ic('x',15)}</button></div><div class="bsm">${esc(s.label)}</div>
     ${!multi?`<div class="bs-stake"><input type="number" min="0" step="any" class="js-st" data-i="${i}" placeholder="${t('sp.stake')} (${S.activeCoin})"><span class="dim mono" style="font-size:11px">${S.activeCoin}</span></div>`:''}</div>`).join('')}
    ${multi?`<div class="bs-sel" style="border-color:rgba(76,141,255,.35)"><div class="bst"><span>${t('sp.multi',{n:BETSLIP.length})}</span><span class="mono" style="color:#8AB4FF">${multiOdds.toFixed(2)}</span></div>
     <div class="bs-stake"><input type="number" min="0" step="any" class="js-mst" placeholder="${t('sp.stake')} (${S.activeCoin})"><span class="dim mono" style="font-size:11px">${S.activeCoin}</span></div></div>`:''}
@@ -307,7 +330,7 @@ Views.sports=function(){
    else{$$('.js-st',slip).forEach(i=>{const v=parseFloat(i.value)||0;pay+=v*BETSLIP[+i.dataset.i].odds})}
    $('.js-pay',slip).textContent=fc(pay,S.activeCoin)+' '+S.activeCoin};
   $$('input',slip).forEach(i=>i.oninput=upd);
-  $$('.rm',slip).forEach(b=>b.onclick=()=>{BETSLIP.splice(+b.dataset.i,1);renderMatches();renderSlip()});
+  $$('.rm',slip).forEach(b=>b.onclick=()=>{BETSLIP.splice(+b.dataset.i,1);renderAll();renderSlip()});
   $('.js-place',slip).onclick=()=>{
    if(!requireAuth()||!canBet())return;
    const u=me();const sym=S.activeCoin;
@@ -320,24 +343,22 @@ Views.sports=function(){
    orders.forEach(o=>{u.balances[sym]-=o.stake;wagerUsd(toUsd(o.stake,sym));
     pushTx({type:'bet',coin:sym,amount:-o.stake,meta:'Sports'});
     u.sbets.unshift({id:'S'+uid().toUpperCase(),ts:Date.now(),sym,stake:o.stake,odds:o.odds,legs:o.legs,label:o.label,status:'open',settleAt:Date.now()+ri(40,110)*1000})});
-   save();UI.balance();BETSLIP=[];renderMatches();renderSlip();
+   save();UI.balance();BETSLIP=[];renderAll();renderSlip();
    toast('ok',t('sp.placed'));$('.js-slip').classList.remove('open')};
-  bindOpenBets();
  }
  function openBetsHTML(){
   const u=me();if(!u||!u.sbets.filter(b=>b.status==='open').length)return'';
   return `<div class="mybets-mini"><div class="dd-h" style="padding-left:2px">${t('sp.mybets')}</div>
-   ${u.sbets.filter(b=>b.status==='open').slice(0,4).map(b=>`<div class="bs-sel"><div class="bst"><span>${esc(b.label)}</span><span class="badge yellow">${t('bets.open')}</span></div><div class="bsm mono">${fc(b.stake,b.sym)} ${b.sym} → ${fc(b.stake*b.odds,b.sym)} ${b.sym}</div></div>`).join('')}</div>`}
- function bindOpenBets(){}
+   ${u.sbets.filter(b=>b.status==='open').slice(0,4).map(b=>`<div class="bs-sel"><div class="bst"><span>${esc(b.label)}</span><span class="badge yellow">${t('bets.open')}</span></div><div class="bsm mono">${fc(b.stake,b.sym)} ${b.sym} \u2192 ${fc(b.stake*b.odds,b.sym)} ${b.sym}</div></div>`).join('')}</div>`}
  $$('.sptab',outlet()).forEach(b=>b.onclick=()=>{sport=b.dataset.s;$$('.sptab').forEach(x=>x.classList.toggle('act',x===b));renderMatches()});
  $('.js-bsfab').onclick=()=>$('.js-slip').classList.toggle('open');
- renderMatches();renderSlip();
- const live=setInterval(()=>{ /* live drift */
+ renderAll();renderSlip();
+ const live=setInterval(()=>{
   SPORTS.forEach(s=>s.leagues.forEach(l=>l.ms.forEach(m=>{
    if(m.live){m.live.min=Math.min(90,m.live.min+1);
     if(Math.random()<.1){if(Math.random()<.5)m.live.hs+=s.id==='basketball'?ri(2,3):1;else m.live.as+=s.id==='basketball'?ri(2,3):1}
     Object.keys(m.odds).forEach(k=>{m.odds[k]=Math.max(1.05,+(m.odds[k]+rnd(-.06,.06)).toFixed(2))})}})));
-  renderMatches()},8000);
+  renderAll()},8000);
  RT.cleanup=()=>clearInterval(live);
 };
 /* sports settlement — global */

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>RealWin — Крипто-казино и ставки на спорт</title>
 <meta name="description" content="RealWin — премиальное крипто-казино: 3000+ слотов, оригинальные игры, live-казино и спортбук. Мгновенные депозиты и выводы в криптовалюте.">
 <meta name="theme-color" content="#070B12">
@@ -765,6 +765,54 @@ select.inp{appearance:none;cursor:pointer}
 .avup .cam{position:absolute;inset:0;border-radius:20px;background:rgba(7,11,18,.55);display:flex;align-items:center;justify-content:center;color:#fff;opacity:0;transition:.16s}
 .avup:hover .cam{opacity:1}
 
+/* ---------- sports v2 ---------- */
+html,body{overflow-x:hidden}
+.feat-wrap{margin-bottom:18px}
+.feat-row{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+.feat-row::-webkit-scrollbar{display:none}
+.feat{flex:0 0 264px;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:9px;transition:.15s}
+.feat:hover{border-color:var(--line2)}
+.feat-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.feat-n{font-size:11px;color:var(--tx3);font-weight:700;display:flex;gap:5px;align-items:center;white-space:nowrap}
+.feat-league{font-size:11px;color:var(--tx3);font-weight:700;display:flex;gap:6px;align-items:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.feat-teams{display:flex;align-items:center;gap:6px;font-weight:800;font-size:12.5px;min-width:0}
+.feat-teams>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feat-odd{height:42px;flex:none;width:100%}
+.league{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.lg-h{display:flex;align-items:center;gap:9px;width:100%;padding:13px 16px;font-weight:800;font-size:13.5px;color:var(--tx);text-align:left;transition:.13s}
+.lg-h:hover{background:rgba(120,160,255,.04)}
+.lg-h .lg-ch{margin-left:auto;color:var(--tx3);transition:.2s}
+.league.closed .lg-ch{transform:rotate(-90deg)}
+.league:not(.closed) .lg-h{border-bottom:1px solid var(--line)}
+.league.closed .lg-b{display:none}
+.lg-b{padding:6px 10px 10px}
+.match2{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:center;padding:12px 8px;border-radius:12px;transition:.12s}
+.match2:hover{background:rgba(120,160,255,.04)}
+.match2+.match2{border-top:1px solid rgba(140,170,230,.06)}
+.m2-info{display:flex;flex-direction:column;gap:7px;min-width:0}
+.m2-info .badge{width:fit-content}
+.m2-team{display:flex;align-items:center;gap:9px;font-weight:700;font-size:13.5px;min-width:0}
+.m2-team .tn2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m2-team .sc2{margin-left:auto;font-family:var(--fm);color:#8AB4FF;padding-left:8px}
+.m2-mkt{min-width:0}
+.m2-lbl{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);margin-bottom:7px}
+.m2-odds{display:flex;gap:8px;min-width:0}
+.odd2{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;height:44px;padding:0 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--line2);transition:.15s}
+.odd2:hover{border-color:rgba(76,141,255,.5);background:rgba(76,141,255,.08)}
+.odd2 .on2{font-size:12px;font-weight:700;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.odd2 .ov2{font-family:var(--fm);font-weight:700;font-size:13px;color:#8AB4FF;flex:none}
+.odd2.sel{background:var(--accG);border-color:transparent;box-shadow:0 4px 14px rgba(41,97,230,.35)}
+.odd2.sel .on2,.odd2.sel .ov2{color:#fff}
+@media(max-width:940px){.match2{grid-template-columns:1fr;gap:10px}}
+@media(max-width:1180px){.bs-fab{left:16px;right:auto}}
+@media(max-width:820px){
+ .inp,.betamt input,.bs-stake input,.chat-in input,select.inp,textarea.inp{font-size:16px}
+ .feat{flex-basis:236px}
+ .authm .m-x{top:30px;right:24px}
+}
+.authm .m-x{top:33px;right:30px;background:var(--card2)}
+.authm .m-x:hover{background:var(--card3)}
+
 </style>
 </head>
 <body>
@@ -963,7 +1011,8 @@ en:{
  'misc.balance':'Balance','misc.currency':'Currency','misc.today':'today','misc.yesterday':'yesterday','misc.justnow':'just now','misc.min':'{n} min ago','misc.hr':'{n} h ago','misc.demo':'DEMO','misc.new':'NEW','misc.hot':'HOT','misc.exclusive':'EXCLUSIVE','misc.results':'Results','misc.of':'of',
  'promo.code.t':'Have a promo code?','promo.code.s':'Activate it and get an instant bonus to your balance','promo.code.ph':'Enter promo code','promo.code.btn':'Activate','promo.code.ok':'Promo code activated: +{a} USDT','promo.code.bad':'Code not found or already used',
  'pv.note.t':'Provider game','pv.note.b':'"{name}" by {prov} connects through the provider API at production launch. In this demo build, RealWin Originals are fully playable.','pv.open':'Open game','pv.playable':'Playable right now',
- 'set.avatar':'Avatar','set.avatar.s':'JPG or PNG, stored in your browser','set.avatar.up':'Upload','set.avatar.rm':'Remove','set.avatar.ok':'Avatar updated'
+ 'set.avatar':'Avatar','set.avatar.s':'JPG or PNG, stored in your browser','set.avatar.up':'Upload','set.avatar.rm':'Remove','set.avatar.ok':'Avatar updated',
+ 'sp.featured':'Top picks','sp.winner':'Match winner','sp.draw':'Draw'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -1011,7 +1060,8 @@ ru:{
  'misc.balance':'Баланс','misc.currency':'Валюта','misc.today':'сегодня','misc.yesterday':'вчера','misc.justnow':'только что','misc.min':'{n} мин назад','misc.hr':'{n} ч назад','misc.demo':'ДЕМО','misc.new':'NEW','misc.hot':'HOT','misc.exclusive':'ЭКСКЛЮЗИВ','misc.results':'Результаты','misc.of':'из',
  'promo.code.t':'Есть промокод?','promo.code.s':'Активируйте его и получите мгновенный бонус на баланс','promo.code.ph':'Введите промокод','promo.code.btn':'Активировать','promo.code.ok':'Промокод активирован: +{a} USDT','promo.code.bad':'Код не найден или уже использован',
  'pv.note.t':'Игра провайдера','pv.note.b':'«{name}» от {prov} подключается через API провайдера при боевом запуске платформы. В демо-сборке полностью играбельны эксклюзивы RealWin Originals.','pv.open':'Открыть игру','pv.playable':'Играбельно сейчас',
- 'set.avatar':'Аватар','set.avatar.s':'JPG или PNG, хранится в вашем браузере','set.avatar.up':'Загрузить','set.avatar.rm':'Убрать','set.avatar.ok':'Аватар обновлён'
+ 'set.avatar':'Аватар','set.avatar.s':'JPG или PNG, хранится в вашем браузере','set.avatar.up':'Загрузить','set.avatar.rm':'Убрать','set.avatar.ok':'Аватар обновлён',
+ 'sp.featured':'Лучший выбор','sp.winner':'Исход матча','sp.draw':'Ничья'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
@@ -1476,9 +1526,9 @@ function openAuth(tab='login'){
    <li>${ic('check',15)}${t('auth.side1')}</li><li>${ic('check',15)}${t('auth.side2')}</li>
    <li>${ic('check',15)}${t('auth.side3')}</li><li>${ic('check',15)}${t('auth.side4')}</li></ul></div></div>`;
  const m=openModal(`<div class="auth">${vis}<div class="auth-form">
-  <div class="tabs" style="width:100%;margin-bottom:20px"><button class="tab ${tab==='login'?'act':''}" data-t="login" style="flex:1">${t('a.login')}</button><button class="tab ${tab==='register'?'act':''}" data-t="register" style="flex:1">${t('a.register')}</button></div>
+  <div class="tabs" style="width:calc(100% - 48px);margin-bottom:20px"><button class="tab ${tab==='login'?'act':''}" data-t="login" style="flex:1">${t('a.login')}</button><button class="tab ${tab==='register'?'act':''}" data-t="register" style="flex:1">${t('a.register')}</button></div>
   <div class="js-authbody"></div>
- </div></div>`,{klass:'xl'});
+ </div></div>`,{klass:'xl authm'});
  const body=$('.js-authbody',m.el);
  const socials=`<div class="ordiv">${t('auth.or')}</div><div class="socials">
   <button class="socialb js-soc"><svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"/></svg>Google</button>
@@ -1942,47 +1992,70 @@ Views.affiliate=function(){
 let BETSLIP=[];
 Views.sports=function(){
  let sport=SPORTS[0].id;
+ const loc=()=>S.lang==='ru'?'ru-RU':'en-US';
+ const fmtT=ts=>{const d=new Date(ts);return d.toLocaleDateString(loc(),{day:'numeric',month:'short'})+' \u00b7 '+d.toLocaleTimeString(loc(),{hour:'2-digit',minute:'2-digit',hour12:false})};
  outlet().innerHTML=`${pageHead(t('sp.title'),t('sp.sub'))}
  <div class="swrap">
-  <div>
+  <div style="min-width:0">
    <div class="sptabs rv in">${SPORTS.map(s=>{const liveN=s.leagues.flatMap(l=>l.ms).filter(m=>m.live).length;
      return `<button class="sptab ${s.id===sport?'act':''}" data-s="${s.id}">${ic(s.ic,22)}<span>${t(s.nk)}</span>${liveN?`<span class="badge red live">${liveN}</span>`:''}</button>`}).join('')}</div>
+   <div class="feat-wrap rv in"><div class="m2-lbl" style="margin:0 2px 10px;display:flex;align-items:center;gap:7px">${ic('flame',13)} ${t('sp.featured')}</div><div class="feat-row js-feat"></div></div>
    <div class="js-matches"></div>
   </div>
   <div><div class="card betslip js-slip"></div></div>
  </div>
  <button class="bs-fab js-bsfab">${ic('file',18)} ${t('sp.betslip')} <span class="n js-fabn" style="background:#fff;color:var(--acc);border-radius:6px;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">0</span></button>`;
- const mbox=$('.js-matches');
- function oddBtn(m,k){
-  const sel=BETSLIP.some(s=>s.mid===m.id&&s.pick===k);
-  const label={1:'1',X:'X',2:'2'}[k];
-  return `<button class="oddb ${sel?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="ol">${label}</span><span class="ov">${m.odds[k].toFixed(2)}</span></button>`}
+ const mbox=$('.js-matches'),featBox=$('.js-feat');
+ const selHas=(mid,k)=>BETSLIP.some(s=>s.mid===mid&&s.pick===k);
+ function addSel(mid,k){
+  const f=findMatch(mid);if(!f)return;const m=f.m;
+  const i=BETSLIP.findIndex(s=>s.mid===mid&&s.pick===k);
+  if(i>=0)BETSLIP.splice(i,1);
+  else{BETSLIP=BETSLIP.filter(s=>s.mid!==mid);
+   BETSLIP.push({mid,pick:k,odds:m.odds[k],label:`${m.h.n} \u2014 ${m.a.n}`,pickName:k==='1'?m.h.n:k==='2'?m.a.n:t('sp.draw'),live:!!m.live})}
+  renderAll();renderSlip()}
+ const dot=tm=>`<span class="tdot" style="background:${tm.c}">${esc(tm.n.slice(0,2).toUpperCase())}</span>`;
+ function oddBtn2(m,k){const lbl=k==='1'?m.h.n:k==='2'?m.a.n:t('sp.draw');
+  return `<button class="odd2 ${selHas(m.id,k)?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="on2">${esc(lbl)}</span><span class="ov2">${m.odds[k].toFixed(2)}</span></button>`}
  function matchHTML(m){
-  const dot=tm=>`<span class="tdot" style="background:${tm.c}">${esc(tm.n.slice(0,2).toUpperCase())}</span>`;
-  const time=m.live?`<span class="badge red live">${t('sp.live')}</span><div class="t" style="margin-top:4px">${t('sp.min',{n:m.live.min})}</div>`
-   :`<div class="d">${new Date(m.ts).toLocaleDateString(S.lang==='ru'?'ru-RU':'en-US',{day:'numeric',month:'short'})}</div><div class="t">${new Date(m.ts).toLocaleTimeString(S.lang==='ru'?'ru-RU':'en-US',{hour:'2-digit',minute:'2-digit'})}</div>`;
-  return `<div class="match" data-mid="${m.id}"><div class="mtime">${time}</div>
-   <div class="teams"><div class="team">${dot(m.h)}<span>${esc(m.h.n)}</span>${m.live?`<span class="score">${m.live.hs}</span>`:''}</div>
-   <div class="team">${dot(m.a)}<span>${esc(m.a.n)}</span>${m.live?`<span class="score">${m.live.as}</span>`:''}</div></div>
-   <div class="modds">${Object.keys(m.odds).map(k=>oddBtn(m,k)).join('')}</div></div>`}
+  const time=m.live?`<span class="badge red live">${t('sp.live')} \u00b7 ${t('sp.min',{n:m.live.min})}</span>`:`<span class="badge gray">${fmtT(m.ts)}</span>`;
+  return `<div class="match2">
+   <div class="m2-info">${time}
+    <div class="m2-team">${dot(m.h)}<span class="tn2">${esc(m.h.n)}</span>${m.live?`<b class="sc2">${m.live.hs}</b>`:''}</div>
+    <div class="m2-team">${dot(m.a)}<span class="tn2">${esc(m.a.n)}</span>${m.live?`<b class="sc2">${m.live.as}</b>`:''}</div></div>
+   <div class="m2-mkt"><div class="m2-lbl">${t('sp.winner')}</div>
+    <div class="m2-odds">${['1','X','2'].filter(k=>m.odds[k]).map(k=>oddBtn2(m,k)).join('')}</div></div></div>`}
+ function renderFeatured(){
+  const feats=[];
+  SPORTS.forEach(s=>s.leagues.forEach(l=>l.ms.forEach(m=>{if(m.live)feats.push({m,l})})));
+  SPORTS[0].leagues.forEach(l=>l.ms.forEach(m=>{if(!m.live&&m.id==='f4')feats.push({m,l})}));
+  featBox.innerHTML=feats.slice(0,4).map(({m,l})=>{
+   const k=(m.odds['1']<=m.odds['2'])?'1':'2';const fav=k==='1'?m.h:m.a;
+   return `<div class="feat">
+    <div class="feat-top">${m.live?`<span class="badge red live">${t('sp.live')} ${m.live.min}\u2032</span>`:`<span class="badge gray">${fmtT(m.ts)}</span>`}<span class="feat-n">${ic('users',12)} ${nf.format(1200+(m.id.charCodeAt(1)*137)%3800)}</span></div>
+    <div class="feat-league">${ic('trophy',12)} ${esc(l.name)}</div>
+    <div class="feat-teams">${dot(m.h)}${dot(m.a)}<span>${esc(m.h.n)} \u2014 ${esc(m.a.n)}</span></div>
+    <button class="odd2 feat-odd ${selHas(m.id,k)?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="on2">${esc(fav.n)}</span><span class="ov2">${m.odds[k].toFixed(2)}</span></button></div>`}).join('');
+  bindOdds(featBox)}
+ function bindOdds(root){$$('.odd2',root).forEach(b=>b.onclick=()=>addSel(b.dataset.m,b.dataset.k))}
  function renderMatches(){
   const s=SPORTS.find(x=>x.id===sport);
-  mbox.innerHTML=s.leagues.map(l=>`<div class="league rv in"><div class="league-h">${ic('trophy',14)} ${esc(l.name)}</div>${l.ms.map(matchHTML).join('')}</div>`).join('');
-  $$('.oddb',mbox).forEach(b=>b.onclick=()=>{
-   const {m}=findMatch(b.dataset.m);const k=b.dataset.k;
-   const i=BETSLIP.findIndex(s=>s.mid===m.id&&s.pick===k);
-   if(i>=0)BETSLIP.splice(i,1);
-   else{BETSLIP=BETSLIP.filter(s=>s.mid!==m.id);
-    BETSLIP.push({mid:m.id,pick:k,odds:m.odds[k],label:`${m.h.n} — ${m.a.n}`,pickName:k==='1'?m.h.n:k==='2'?m.a.n:'X',live:!!m.live})}
-   renderMatches();renderSlip()})}
+  const closed=new Set($$('.league.closed',mbox).map(el=>el.dataset.ln));
+  mbox.innerHTML=s.leagues.map(l=>`<div class="league rv in ${closed.has(l.name)?'closed':''}" data-ln="${esc(l.name)}">
+   <button class="lg-h">${ic('trophy',14)}<span>${esc(l.name)}</span><span class="badge blue">${l.ms.length}</span>${ic('chevD',15,'lg-ch')}</button>
+   <div class="lg-b">${l.ms.map(matchHTML).join('')}</div></div>`).join('');
+  bindOdds(mbox);
+  $$('.lg-h',mbox).forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('closed'));
+ }
+ function renderAll(){renderFeatured();renderMatches()}
  function renderSlip(){
   const slip=$('.js-slip');
   $('.js-fabn').textContent=BETSLIP.length;
-  if(!BETSLIP.length){slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">0</span></div><div class="empty" style="padding:30px 10px">${ic('target',30)}<div class="t">${t('sp.empty')}</div></div>${openBetsHTML()}`;bindOpenBets();return}
+  if(!BETSLIP.length){slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">0</span></div><div class="empty" style="padding:30px 10px">${ic('target',30)}<div class="t">${t('sp.empty')}</div></div>${openBetsHTML()}`;return}
   const multi=BETSLIP.length>1;
   const multiOdds=BETSLIP.reduce((a,s)=>a*s.odds,1);
   slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">${BETSLIP.length}</span></div>
-   ${BETSLIP.map((s,i)=>`<div class="bs-sel"><div class="bst"><span>${esc(s.pickName)} · <span class="mono" style="color:#8AB4FF">${s.odds.toFixed(2)}</span></span><button class="rm" data-i="${i}">${ic('x',15)}</button></div><div class="bsm">${esc(s.label)}</div>
+   ${BETSLIP.map((s,i)=>`<div class="bs-sel"><div class="bst"><span>${esc(s.pickName)} \u00b7 <span class="mono" style="color:#8AB4FF">${s.odds.toFixed(2)}</span></span><button class="rm" data-i="${i}">${ic('x',15)}</button></div><div class="bsm">${esc(s.label)}</div>
     ${!multi?`<div class="bs-stake"><input type="number" min="0" step="any" class="js-st" data-i="${i}" placeholder="${t('sp.stake')} (${S.activeCoin})"><span class="dim mono" style="font-size:11px">${S.activeCoin}</span></div>`:''}</div>`).join('')}
    ${multi?`<div class="bs-sel" style="border-color:rgba(76,141,255,.35)"><div class="bst"><span>${t('sp.multi',{n:BETSLIP.length})}</span><span class="mono" style="color:#8AB4FF">${multiOdds.toFixed(2)}</span></div>
     <div class="bs-stake"><input type="number" min="0" step="any" class="js-mst" placeholder="${t('sp.stake')} (${S.activeCoin})"><span class="dim mono" style="font-size:11px">${S.activeCoin}</span></div></div>`:''}
@@ -1994,7 +2067,7 @@ Views.sports=function(){
    else{$$('.js-st',slip).forEach(i=>{const v=parseFloat(i.value)||0;pay+=v*BETSLIP[+i.dataset.i].odds})}
    $('.js-pay',slip).textContent=fc(pay,S.activeCoin)+' '+S.activeCoin};
   $$('input',slip).forEach(i=>i.oninput=upd);
-  $$('.rm',slip).forEach(b=>b.onclick=()=>{BETSLIP.splice(+b.dataset.i,1);renderMatches();renderSlip()});
+  $$('.rm',slip).forEach(b=>b.onclick=()=>{BETSLIP.splice(+b.dataset.i,1);renderAll();renderSlip()});
   $('.js-place',slip).onclick=()=>{
    if(!requireAuth()||!canBet())return;
    const u=me();const sym=S.activeCoin;
@@ -2007,24 +2080,22 @@ Views.sports=function(){
    orders.forEach(o=>{u.balances[sym]-=o.stake;wagerUsd(toUsd(o.stake,sym));
     pushTx({type:'bet',coin:sym,amount:-o.stake,meta:'Sports'});
     u.sbets.unshift({id:'S'+uid().toUpperCase(),ts:Date.now(),sym,stake:o.stake,odds:o.odds,legs:o.legs,label:o.label,status:'open',settleAt:Date.now()+ri(40,110)*1000})});
-   save();UI.balance();BETSLIP=[];renderMatches();renderSlip();
+   save();UI.balance();BETSLIP=[];renderAll();renderSlip();
    toast('ok',t('sp.placed'));$('.js-slip').classList.remove('open')};
-  bindOpenBets();
  }
  function openBetsHTML(){
   const u=me();if(!u||!u.sbets.filter(b=>b.status==='open').length)return'';
   return `<div class="mybets-mini"><div class="dd-h" style="padding-left:2px">${t('sp.mybets')}</div>
-   ${u.sbets.filter(b=>b.status==='open').slice(0,4).map(b=>`<div class="bs-sel"><div class="bst"><span>${esc(b.label)}</span><span class="badge yellow">${t('bets.open')}</span></div><div class="bsm mono">${fc(b.stake,b.sym)} ${b.sym} → ${fc(b.stake*b.odds,b.sym)} ${b.sym}</div></div>`).join('')}</div>`}
- function bindOpenBets(){}
+   ${u.sbets.filter(b=>b.status==='open').slice(0,4).map(b=>`<div class="bs-sel"><div class="bst"><span>${esc(b.label)}</span><span class="badge yellow">${t('bets.open')}</span></div><div class="bsm mono">${fc(b.stake,b.sym)} ${b.sym} \u2192 ${fc(b.stake*b.odds,b.sym)} ${b.sym}</div></div>`).join('')}</div>`}
  $$('.sptab',outlet()).forEach(b=>b.onclick=()=>{sport=b.dataset.s;$$('.sptab').forEach(x=>x.classList.toggle('act',x===b));renderMatches()});
  $('.js-bsfab').onclick=()=>$('.js-slip').classList.toggle('open');
- renderMatches();renderSlip();
- const live=setInterval(()=>{ /* live drift */
+ renderAll();renderSlip();
+ const live=setInterval(()=>{
   SPORTS.forEach(s=>s.leagues.forEach(l=>l.ms.forEach(m=>{
    if(m.live){m.live.min=Math.min(90,m.live.min+1);
     if(Math.random()<.1){if(Math.random()<.5)m.live.hs+=s.id==='basketball'?ri(2,3):1;else m.live.as+=s.id==='basketball'?ri(2,3):1}
     Object.keys(m.odds).forEach(k=>{m.odds[k]=Math.max(1.05,+(m.odds[k]+rnd(-.06,.06)).toFixed(2))})}})));
-  renderMatches()},8000);
+  renderAll()},8000);
  RT.cleanup=()=>clearInterval(live);
 };
 /* sports settlement — global */
