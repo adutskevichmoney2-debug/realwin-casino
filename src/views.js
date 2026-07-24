@@ -314,10 +314,10 @@ Views.sports=function(){
  function renderSlip(){
   const slip=$('.js-slip');
   $('.js-fabn').textContent=BETSLIP.length;
-  if(!BETSLIP.length){slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">0</span></div><div class="empty" style="padding:30px 10px">${ic('target',30)}<div class="t">${t('sp.empty')}</div></div>${openBetsHTML()}`;return}
+  if(!BETSLIP.length){slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">0</span><button class="bs-close js-bsclose" aria-label="close">${ic('x',16)}</button></div><div class="empty" style="padding:30px 10px">${ic('target',30)}<div class="t">${t('sp.empty')}</div></div>${openBetsHTML()}`;const bc0=$('.js-bsclose',slip);if(bc0)bc0.onclick=()=>slip.classList.remove('open');return}
   const multi=BETSLIP.length>1;
   const multiOdds=BETSLIP.reduce((a,s)=>a*s.odds,1);
-  slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">${BETSLIP.length}</span></div>
+  slip.innerHTML=`<div class="bs-h">${ic('file',17)} ${t('sp.betslip')}<span class="n">${BETSLIP.length}</span><button class="bs-close js-bsclose" aria-label="close">${ic('x',16)}</button></div>
    ${BETSLIP.map((s,i)=>`<div class="bs-sel"><div class="bst"><span>${esc(s.pickName)} \u00b7 <span class="mono" style="color:#8AB4FF">${s.odds.toFixed(2)}</span></span><button class="rm" data-i="${i}">${ic('x',15)}</button></div><div class="bsm">${esc(s.label)}</div>
     ${!multi?`<div class="bs-stake"><input type="number" min="0" step="any" class="js-st" data-i="${i}" placeholder="${t('sp.stake')} (${S.activeCoin})"><span class="dim mono" style="font-size:11px">${S.activeCoin}</span></div>`:''}</div>`).join('')}
    ${multi?`<div class="bs-sel" style="border-color:rgba(76,141,255,.35)"><div class="bst"><span>${t('sp.multi',{n:BETSLIP.length})}</span><span class="mono" style="color:#8AB4FF">${multiOdds.toFixed(2)}</span></div>
@@ -330,6 +330,7 @@ Views.sports=function(){
    else{$$('.js-st',slip).forEach(i=>{const v=parseFloat(i.value)||0;pay+=v*BETSLIP[+i.dataset.i].odds})}
    $('.js-pay',slip).textContent=fc(pay,S.activeCoin)+' '+S.activeCoin};
   $$('input',slip).forEach(i=>i.oninput=upd);
+  const bc=$('.js-bsclose',slip);if(bc)bc.onclick=()=>slip.classList.remove('open');
   $$('.rm',slip).forEach(b=>b.onclick=()=>{BETSLIP.splice(+b.dataset.i,1);renderAll();renderSlip()});
   $('.js-place',slip).onclick=()=>{
    if(!requireAuth()||!canBet())return;

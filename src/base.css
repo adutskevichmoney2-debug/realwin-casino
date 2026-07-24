@@ -28,6 +28,8 @@ h1,h2,h3,h4{font-family:var(--fd);font-weight:700;line-height:1.2;letter-spacing
 ::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:var(--bg0)}
 html{scrollbar-color:#2B3B5F #070B12}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .mono{font-family:var(--fm);font-size:.92em}
 .muted{color:var(--tx2)}.dim{color:var(--tx3)}
 .up{color:var(--ok)}.down{color:var(--bad)}
