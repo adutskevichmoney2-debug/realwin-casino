@@ -127,7 +127,7 @@ UI.sidebar=function(){
    ${item('/affiliate','users',t('nav.affiliate'))}
    ${item('/fairness','shieldCheck',t('nav.fairness'))}
    ${item('/support','headset',t('nav.support'))}
-   ${(window.CLOUD&&window.CLOUD.isStaff&&window.CLOUD.isStaff())?item('/admin','shield',t('adm.title')):''}
+   ${(()=>{const uu=me();return !!(uu&&uu.cloud&&(uu.role==='admin'||uu.role==='moderator'))})()?item('/admin','shield',t('adm.title')):''}
   </div>
   <div class="sb-g"><div class="sb-h">${t('set.lang')}</div>
    <button class="sb-i js-sblang" data-l="${S.lang==='ru'?'en':'ru'}">${ic('globe',18)}<span>${S.lang==='ru'?'English':'Русский'}</span></button>

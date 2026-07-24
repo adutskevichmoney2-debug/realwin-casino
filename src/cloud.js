@@ -228,12 +228,13 @@ window.CLOUD = null;
    return data || [];
   }
  };
+ let loadingUser=false;
  sb.auth.onAuthStateChange((ev, session)=>{
-  if(ev==='SIGNED_IN' && session){
-   const u = me();
-   if(!u || !u.cloud){
-    loadUser(session.user).then(ok=>{ if(ok){ UI.renderShell(); renderRoute(); toast('ok', t('cl.hello')) } });
-   }
-  }
+  if(ev!=='SIGNED_IN' || !session) return;
+  const u = me();
+  if(u && u.cloud && u.id===session.user.id) return;
+  if(loadingUser) return;
+  loadingUser=true;
+  loadUser(session.user).then(ok=>{ loadingUser=false; if(ok){ UI.renderShell(); renderRoute() } });
  });
 })();
