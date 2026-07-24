@@ -5,5 +5,6 @@
    Пока поля пустые — сайт работает в демо-режиме (localStorage). */
 window.RW_CONFIG = {
   SUPABASE_URL: '',
-  SUPABASE_ANON: ''
+  SUPABASE_ANON: '',
+  EMAIL_MODE: 'link' // 'link' — подтверждение кнопкой в письме (без SMTP); 'code' — 6-значный код (нужен свой SMTP)
 };

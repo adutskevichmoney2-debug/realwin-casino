@@ -62,7 +62,17 @@ window.CLOUD = null;
  }
 
  window.CLOUD = {
-  sb, on: true,
+  sb, on: true, emailMode: (cfg.EMAIL_MODE==='code'?'code':'link'),
+  pollSession(cb){
+   let stopped=false;
+   const iv=setInterval(async()=>{
+    if(stopped)return;
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){const u=me();if(!u||!u.cloud){const ok=await loadUser(session.user);if(ok){stopped=true;clearInterval(iv);cb(true)}}else{stopped=true;clearInterval(iv);cb(true)}}
+   },3000);
+   setTimeout(()=>{stopped=true;clearInterval(iv)},900000);
+   return ()=>{stopped=true;clearInterval(iv)};
+  },
   async restore(){
    try{
     const {data:{session}} = await sb.auth.getSession();
@@ -199,4 +209,12 @@ window.CLOUD = null;
    return data || [];
   }
  };
+ sb.auth.onAuthStateChange((ev, session)=>{
+  if(ev==='SIGNED_IN' && session){
+   const u = me();
+   if(!u || !u.cloud){
+    loadUser(session.user).then(ok=>{ if(ok){ UI.renderShell(); renderRoute(); toast('ok', t('cl.hello')) } });
+   }
+  }
+ });
 })();

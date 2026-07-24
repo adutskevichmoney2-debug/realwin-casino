@@ -159,7 +159,8 @@ en:{
  'otp.title':'Confirm your email','otp.sub':'We sent a 6-digit code to {e}. Enter it below.','otp.btn':'Verify','otp.resend':'Resend code','otp.resent':'Code sent again','otp.wait':'Resend in {s}s','otp.bad':'Wrong or expired code',
  'cl.err':'Server error — try again','cl.banned':'Account is banned','cl.notconfirmed':'Email is not confirmed','cl.ratelimit':'Too many emails — built-in Supabase mail allows a few per hour, try later','cl.hello':'Account verified — welcome!',
  'tk.title':'My tickets','tk.new':'New ticket','tk.empty':'No tickets yet','tk.open':'Open','tk.answered':'Answered','tk.closed':'Closed','tk.reply':'Reply','tk.created':'Ticket created — the reply will appear in this section','tk.staff':'Support','tk.you':'You',
- 'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment'
+ 'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment',
+ 'lnk.title':'Check your inbox','lnk.sub':'We sent an email to {e}. Click the confirmation button inside — this tab will sign in automatically.','lnk.waiting':'Waiting for confirmation…'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -212,7 +213,8 @@ ru:{
  'otp.title':'Подтвердите почту','otp.sub':'Мы отправили 6-значный код на {e}. Введите его ниже.','otp.btn':'Подтвердить','otp.resend':'Отправить код ещё раз','otp.resent':'Код отправлен повторно','otp.wait':'Повторно через {s} с','otp.bad':'Неверный или истёкший код',
  'cl.err':'Ошибка сервера — попробуйте ещё раз','cl.banned':'Аккаунт заблокирован','cl.notconfirmed':'Почта не подтверждена','cl.ratelimit':'Слишком много писем — встроенная почта Supabase шлёт несколько в час, попробуйте позже','cl.hello':'Аккаунт подтверждён — добро пожаловать!',
  'tk.title':'Мои обращения','tk.new':'Новое обращение','tk.empty':'Обращений пока нет','tk.open':'Открыт','tk.answered':'Есть ответ','tk.closed':'Закрыт','tk.reply':'Ответить','tk.created':'Обращение создано — ответ появится в этом разделе','tk.staff':'Поддержка','tk.you':'Вы',
- 'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка'
+ 'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка',
+ 'lnk.title':'Проверьте почту','lnk.sub':'Мы отправили письмо на {e}. Нажмите кнопку подтверждения в письме — эта вкладка войдёт автоматически.','lnk.waiting':'Ожидаем подтверждение…'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
@@ -333,7 +335,7 @@ async function sha256hex(str){try{const b=await crypto.subtle.digest('SHA-256',n
 /* ================= router ================= */
 const RT={routes:[],add(re,fn){this.routes.push({re,fn})},cleanup:null};
 function nav(path){location.hash='#'+path}
-function currentPath(){let h=location.hash.slice(1);if(!h||h==='/')h='/';return h}
+function currentPath(){let h=location.hash.slice(1);if(!h||!h.startsWith('/'))h='/';return h}
 function renderRoute(){
  const path=currentPath();
  if(RT.cleanup){try{RT.cleanup()}catch(e){}RT.cleanup=null}

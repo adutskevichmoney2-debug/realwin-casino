@@ -256,7 +256,7 @@ function openAuth(tab='login'){
   const forgot=$('.js-forgot',body);
   if(forgot)forgot.onclick=()=>{const em=$('.js-f-email input',body).value.trim();
    if(window.CLOUD){if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){$('.js-f-email',body).classList.add('err');return}
-    CLOUD.otpLogin(em).then(r=>{if(r.error){toast('err',r.error);return}m.close();openOtpModal(em,'email')});return}
+    CLOUD.otpLogin(em).then(r=>{if(r.error){toast('err',r.error);return}m.close();(CLOUD.emailMode==='code'?openOtpModal:openLinkModal)(em,'email')});return}
    toast('ok',t('auth.reset.sent',{e:em||'email'}))};
   $('.js-do',body).onclick=()=>{
    if(window.CLOUD){cloudAuth(mode,body,m);return}
@@ -446,7 +446,7 @@ function cloudAuth(mode,body,m){
   if(pass.length<6){setErr('.js-f-pass',true,t('auth.err.pass'));return}
   busy(true);
   CLOUD.login(email,pass).then(r=>{busy(false);
-   if(r.verify){m.close();openOtpModal(email,'signup');return}
+   if(r.verify){m.close();(CLOUD.emailMode==='code'?openOtpModal:openLinkModal)(email,'signup');return}
    if(r.error){setErr('.js-f-pass',true,r.error);return}
    m.close();afterCloudLogin(false)});
  }else{
@@ -463,7 +463,7 @@ function cloudAuth(mode,body,m){
   CLOUD.register(email,name,pass).then(r=>{busy(false);
    if(r.error){setErr('.js-f-email',true,r.error);return}
    m.close();
-   if(r.verify){openOtpModal(email,'signup');return}
+   if(r.verify){(CLOUD.emailMode==='code'?openOtpModal:openLinkModal)(email,'signup');return}
    afterCloudLogin(true)});
  }
 }
@@ -509,6 +509,27 @@ function openOtpModal(email,type){
   });
  }
  $('.js-ver',m2.el).onclick=doVerify;
+ let cd=0,cdT=null;
+ $('.js-res',m2.el).onclick=()=>{
+  if(cd>0)return;
+  CLOUD.resend(email,type).then(r=>{
+   if(r.error){toast('err',r.error);return}
+   toast('ok',t('otp.resent'));
+   cd=60;const rb=$('.js-res',m2.el);
+   cdT=setInterval(()=>{cd--;if(!rb.isConnected){clearInterval(cdT);return}
+    rb.textContent=cd>0?t('otp.wait',{s:cd}):t('otp.resend');
+    if(cd<=0)clearInterval(cdT)},1000)});
+ };
+}
+
+function openLinkModal(email,type){
+ const m2=openModal(`<div class="m-body" style="text-align:center;padding:36px 30px">
+  <div style="display:flex;justify-content:center;margin-bottom:16px"><span style="width:58px;height:58px;border-radius:17px;background:rgba(76,141,255,.13);color:#7FB2FF;display:flex;align-items:center;justify-content:center">${ic('mail',26)}</span></div>
+  <div class="m-title">${t('lnk.title')}</div>
+  <p style="color:var(--tx2);font-size:13.5px;margin:8px 0 18px;line-height:1.6">${t('lnk.sub',{e:esc(email)})}</p>
+  <div class="badge blue" style="padding:8px 14px"><span class="pulse" style="width:7px;height:7px;border-radius:50%;background:var(--acc-h);display:inline-block;margin-right:4px"></span>${t('lnk.waiting')}</div>
+  <div style="margin-top:18px"><button class="js-res" style="font-size:12.5px;font-weight:800;color:var(--acc-h)">${t('otp.resend')}</button></div></div>`,{onClose:()=>{if(stop)stop()}});
+ const stop=CLOUD.pollSession(()=>{m2.close();afterCloudLogin(type!=='email')});
  let cd=0,cdT=null;
  $('.js-res',m2.el).onclick=()=>{
   if(cd>0)return;
