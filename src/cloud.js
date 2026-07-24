@@ -37,6 +37,7 @@ window.CLOUD = null;
   if(pr.error || !pr.data){ console.warn('profile load', pr.error); return false }
   const p = pr.data;
   if(p.banned){ await sb.auth.signOut(); toast('err', t('cl.banned')); return false }
+  const prev = S.accounts[p.email]; /* сохранённый локально аккаунт: не теряем аватарку при пересоздании */
   const balances = DEF_BAL();
   (wl.data||[]).forEach(w=>{ if(w.coin in balances) balances[w.coin] = +w.balance });
   const u = {
@@ -50,7 +51,7 @@ window.CLOUD = null;
    verif: (p.settings&&p.settings.verif)||{status:'none',until:0},
    twoFA: false, privacy: !!(p.settings&&p.settings.privacy),
    limits: (p.settings&&p.settings.limits)||{dep:0,loss:0,coolUntil:0},
-   lossToday:0, depToday:0, avatar: undefined,
+   lossToday:0, depToday:0, avatar: (prev && prev.avatar) || undefined,
    seeds: (p.settings&&p.settings.seeds)||{client:uid.slice(0,16), serverHash:'', server:'', nonce:0}
   };
   S.accounts[u.email] = u; S.sessionEmail = u.email; save();
