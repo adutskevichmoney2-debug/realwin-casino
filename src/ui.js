@@ -77,7 +77,7 @@ UI.header=function(){
   bindDD($('.js-bellbtn',hdr),$('.js-ndd',hdr),()=>{renderNotifs();});
   $('.js-readall',hdr).onclick=()=>{u.notifs.forEach(n=>n.read=true);save();renderNotifs();UI.bell()};
   bindDD($('.js-avbtn',hdr),$('.js-udd',hdr));
-  $('.js-logout',hdr).onclick=()=>{S.sessionEmail=null;save();UI.renderShell();renderRoute();toast('info',t('toast.bye'))};
+  $('.js-logout',hdr).onclick=()=>{if(window.CLOUD)window.CLOUD.logout();S.sessionEmail=null;save();UI.renderShell();renderRoute();toast('info',t('toast.bye'))};
   UI.bell();
  }else{
   bindDD($('.js-langbtn',hdr),$('.js-langdd',hdr));
@@ -127,6 +127,7 @@ UI.sidebar=function(){
    ${item('/affiliate','users',t('nav.affiliate'))}
    ${item('/fairness','shieldCheck',t('nav.fairness'))}
    ${item('/support','headset',t('nav.support'))}
+   ${(window.CLOUD&&window.CLOUD.isStaff&&window.CLOUD.isStaff())?item('/admin','shield',t('adm.title')):''}
   </div>
   <div class="sb-g"><div class="sb-h">${t('set.lang')}</div>
    <button class="sb-i js-sblang" data-l="${S.lang==='ru'?'en':'ru'}">${ic('globe',18)}<span>${S.lang==='ru'?'English':'Русский'}</span></button>
@@ -253,8 +254,12 @@ function openAuth(tab='login'){
   const pw=$('.js-pw',body);
   if(pw)$('.js-f-pass input',body).oninput=e=>{const v=e.target.value;let s=0;if(v.length>=6)s++;if(v.length>=10)s++;if(/[0-9]/.test(v)&&/[a-zA-Z]/.test(v))s++;if(/[^a-zA-Z0-9]/.test(v))s++;pw.className='pwmeter js-pw'+(s?' s'+s:'')};
   const forgot=$('.js-forgot',body);
-  if(forgot)forgot.onclick=()=>{const em=$('.js-f-email input',body).value.trim()||'email';toast('ok',t('auth.reset.sent',{e:em}))};
+  if(forgot)forgot.onclick=()=>{const em=$('.js-f-email input',body).value.trim();
+   if(window.CLOUD){if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){$('.js-f-email',body).classList.add('err');return}
+    CLOUD.otpLogin(em).then(r=>{if(r.error){toast('err',r.error);return}m.close();openOtpModal(em,'email')});return}
+   toast('ok',t('auth.reset.sent',{e:em||'email'}))};
   $('.js-do',body).onclick=()=>{
+   if(window.CLOUD){cloudAuth(mode,body,m);return}
    const email=$('.js-f-email input',body).value.trim().toLowerCase();
    const pass=$('.js-f-pass input',body).value;
    const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
@@ -425,4 +430,94 @@ function renderQuick(){
 function sendChat(){
  const i=$('.js-cin');const v=i.value.trim();if(!v)return;i.value='';
  chatMsg(v,'me');botSay(t('chat.fallback'));
+}
+
+
+/* ================= CLOUD auth UI ================= */
+function cloudAuth(mode,body,m){
+ const email=$('.js-f-email input',body).value.trim().toLowerCase();
+ const pass=$('.js-f-pass input',body).value;
+ const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+ const setErr=(sel,on,msg)=>{const f=$(sel,body);if(f){f.classList.toggle('err',on);if(on&&msg){const fe=$('.ferr',f);if(fe)fe.textContent=msg}}};
+ setErr('.js-f-email',!okEmail,t('auth.err.email'));if(!okEmail)return;
+ const btn=$('.js-do',body);
+ const busy=b=>{btn.disabled=b;if(b)btn.textContent='…';else btn.textContent=mode==='login'?t('auth.signin'):t('auth.create')};
+ if(mode==='login'){
+  if(pass.length<6){setErr('.js-f-pass',true,t('auth.err.pass'));return}
+  busy(true);
+  CLOUD.login(email,pass).then(r=>{busy(false);
+   if(r.verify){m.close();openOtpModal(email,'signup');return}
+   if(r.error){setErr('.js-f-pass',true,r.error);return}
+   m.close();afterCloudLogin(false)});
+ }else{
+  const name=$('.js-f-user input',body).value.trim();
+  const okUser=/^[a-zA-Z0-9_]{3,16}$/.test(name);
+  const okPass=pass.length>=6;
+  const terms=$('.js-terms input',body).checked;
+  setErr('.js-f-user',!okUser,t('auth.err.user'));setErr('.js-f-pass',!okPass,t('auth.err.pass'));
+  if(!okUser||!okPass)return;
+  if(!terms){toast('err',t('auth.err.terms'));return}
+  const promo=$('.js-promo',body).value.trim().toUpperCase();
+  if(promo)sstore.setItem('rw_promo',promo);
+  busy(true);
+  CLOUD.register(email,name,pass).then(r=>{busy(false);
+   if(r.error){setErr('.js-f-email',true,r.error);return}
+   m.close();
+   if(r.verify){openOtpModal(email,'signup');return}
+   afterCloudLogin(true)});
+ }
+}
+function afterCloudLogin(isNew){
+ UI.renderShell();renderRoute();
+ const u=me();
+ const promo=sstore.getItem('rw_promo');
+ if(promo&&u&&window.CLOUD){sstore.removeItem('rw_promo');
+  CLOUD.redeem(promo).then(r=>{if(r.ok){u.balances.USDT+=r.amount;
+   u.txs.unshift({id:'TX'+uid().toUpperCase(),ts:Date.now(),status:'done',type:'bonus',coin:'USDT',amount:r.amount,meta:promo,cloudSkip:true});
+   save();UI.balance();toast('ok',t('promo.code.ok',{a:r.amount}))}})}
+ toast('ok',isNew?t('cl.hello'):t('auth.hello',{n:u?u.name:''}));
+ if(u&&isNew)notify('gift',t('n.welcome.t'),t('n.welcome.b'),true);
+}
+function openOtpModal(email,type){
+ const m2=openModal(`<div class="m-body" style="text-align:center;padding:34px 30px">
+  <div style="display:flex;justify-content:center;margin-bottom:16px"><span style="width:58px;height:58px;border-radius:17px;background:rgba(76,141,255,.13);color:#7FB2FF;display:flex;align-items:center;justify-content:center">${ic('mail',26)}</span></div>
+  <div class="m-title">${t('otp.title')}</div>
+  <p style="color:var(--tx2);font-size:13.5px;margin:6px 0 20px;line-height:1.55">${t('otp.sub',{e:esc(email)})}</p>
+  <div class="otp-row js-otp">${Array.from({length:6},(_,i)=>`<input class="otp-i" inputmode="numeric" autocomplete="one-time-code" maxlength="1" data-i="${i}">`).join('')}</div>
+  <div class="ferr js-oerr" style="display:none;margin-top:12px"></div>
+  <button class="btn lg wide js-ver" style="margin-top:22px">${t('otp.btn')}</button>
+  <div style="margin-top:14px"><button class="js-res" style="font-size:12.5px;font-weight:800;color:var(--acc-h)">${t('otp.resend')}</button></div></div>`);
+ const cells=$$('.otp-i',m2.el);
+ setTimeout(()=>cells[0].focus(),60);
+ cells.forEach((c,i)=>{
+  c.addEventListener('input',()=>{c.value=c.value.replace(/\D/g,'');if(c.value&&i<5)cells[i+1].focus()});
+  c.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!c.value&&i>0)cells[i-1].focus();if(e.key==='Enter')doVerify()});
+  c.addEventListener('paste',e=>{e.preventDefault();const txt=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+   txt.split('').forEach((ch,x)=>{if(cells[x])cells[x].value=ch});
+   if(txt.length===6)doVerify();else if(cells[txt.length])cells[txt.length].focus()});
+ });
+ const showErr=msg=>{const e=$('.js-oerr',m2.el);e.style.display='block';e.textContent=msg;
+  const row=$('.js-otp',m2.el);row.classList.add('shakeo');setTimeout(()=>row.classList.remove('shakeo'),400)};
+ function doVerify(){
+  const code=cells.map(c=>c.value).join('');
+  if(code.length<6){showErr(t('otp.bad'));return}
+  const b=$('.js-ver',m2.el);b.disabled=true;b.textContent='…';
+  CLOUD.verify(email,code,type).then(r=>{
+   b.disabled=false;b.textContent=t('otp.btn');
+   if(r.error){showErr(r.error);return}
+   m2.close();afterCloudLogin(type!=='email');
+  });
+ }
+ $('.js-ver',m2.el).onclick=doVerify;
+ let cd=0,cdT=null;
+ $('.js-res',m2.el).onclick=()=>{
+  if(cd>0)return;
+  CLOUD.resend(email,type).then(r=>{
+   if(r.error){toast('err',r.error);return}
+   toast('ok',t('otp.resent'));
+   cd=60;const rb=$('.js-res',m2.el);
+   cdT=setInterval(()=>{cd--;if(!rb.isConnected){clearInterval(cdT);return}
+    rb.textContent=cd>0?t('otp.wait',{s:cd}):t('otp.resend');
+    if(cd<=0)clearInterval(cdT)},1000)});
+ };
 }

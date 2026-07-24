@@ -32,7 +32,7 @@ if os.path.isdir(BANNERS):
 images_js = 'const IMG=' + json.dumps(imgs) + ';\nconst BAN=' + json.dumps(bans) + ';\n'
 
 parts_css = [read(os.path.join(SRC, 'base.css')), read(os.path.join(SRC, 'pages.css'))]
-parts_js = [images_js] + [read(os.path.join(SRC, f)) for f in ('core.js', 'ui.js', 'views.js', 'games.js', 'boot.js')]
+parts_js = [images_js] + [read(os.path.join(SRC, f)) for f in ('config.js', 'core.js', 'cloud.js', 'ui.js', 'views.js', 'games.js', 'boot.js')]
 
 html = []
 html.append(read(os.path.join(SRC, 'head.html')))

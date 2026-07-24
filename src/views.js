@@ -127,6 +127,12 @@ Views.promos=function(){
  const doCode=()=>{
   const u=me();if(!u){openAuth('register');return}
   const code=$('.js-pcode').value.trim().toUpperCase();if(!code)return;
+  if(u.cloud&&window.CLOUD){CLOUD.redeem(code).then(r=>{
+    if(r.error){toast('err',r.error);return}
+    u.balances.USDT+=r.amount;
+    u.txs.unshift({id:'TX'+uid().toUpperCase(),ts:Date.now(),status:'done',type:'bonus',coin:'USDT',amount:r.amount,meta:code,cloudSkip:true});
+    save();UI.balance();notify('gift',t('n.bonus.t'),'+'+r.amount+' USDT \u00b7 '+code,true);
+    toast('ok',t('promo.code.ok',{a:r.amount}));$('.js-pcode').value=''});return}
   const CODES={REALWIN:100,WIN50:50,RW2026:200};
   const amt=CODES[code];
   if(!amt||u.claimed['code:'+code]){toast('err',t('promo.code.bad'));return}
@@ -343,7 +349,7 @@ Views.sports=function(){
    if(bal(sym)<total){toast('err',t('game.notbal'));return}
    orders.forEach(o=>{u.balances[sym]-=o.stake;wagerUsd(toUsd(o.stake,sym));
     pushTx({type:'bet',coin:sym,amount:-o.stake,meta:'Sports'});
-    u.sbets.unshift({id:'S'+uid().toUpperCase(),ts:Date.now(),sym,stake:o.stake,odds:o.odds,legs:o.legs,label:o.label,status:'open',settleAt:Date.now()+ri(40,110)*1000})});
+    u.sbets.unshift({id:'S'+uid().toUpperCase(),ts:Date.now(),sym,stake:o.stake,odds:o.odds,legs:o.legs,label:o.label,status:'open',settleAt:Date.now()+ri(40,110)*1000});if(u.cloud&&window.CLOUD)window.CLOUD.sbetPlace(u.sbets[0])});
    save();UI.balance();BETSLIP=[];renderAll();renderSlip();
    toast('ok',t('sp.placed'));$('.js-slip').classList.remove('open')};
  }
@@ -369,6 +375,7 @@ function settleSbets(){
   if(b.status==='open'&&Date.now()>=b.settleAt){
    const wins=b.legs.every(l=>Math.random()<(1/l.odds)*0.95);
    b.status=wins?'won':'lost';changed=true;
+   if(u.cloud&&window.CLOUD)window.CLOUD.sbetSettle(b);
    if(wins){const pay=b.stake*b.odds;u.balances[b.sym]=(u.balances[b.sym]||0)+pay;u.pnl+=toUsd(pay,b.sym);
     pushTx({type:'win',coin:b.sym,amount:pay,meta:'Sports'});
     notify('trophy',t('n.bet.t'),t('sp.settled',{r:t('sp.won')+' +'+fc(pay,b.sym)+' '+b.sym}))}
@@ -474,6 +481,8 @@ Views.profile=function(tab){
    else{u.twoFA=false;save();toast('info',t('set.2fa.off'))}};
   $('.js-psave',box).onclick=()=>{
    const c=$('.js-pc',box).value,n=$('.js-pn',box).value;
+   if(u.cloud&&window.CLOUD){if(n.length<6){toast('err',t('auth.err.pass'));return}
+    CLOUD.changePass(n).then(r=>{if(r.error){toast('err',r.error);return}toast('ok',t('set.pass.done'));$('.js-pc',box).value='';$('.js-pn',box).value=''});return}
    if(u.pass!==btoa(unescape(encodeURIComponent(c)))){toast('err',t('set.pass.err'));return}
    if(n.length<6){toast('err',t('auth.err.pass'));return}
    u.pass=btoa(unescape(encodeURIComponent(n)));save();toast('ok',t('set.pass.done'));$('.js-pc',box).value='';$('.js-pn',box).value=''};
@@ -548,8 +557,21 @@ Views.support=function(){
  $('.js-openchat').onclick=()=>toggleChat(true);
  $('.js-mail').onclick=()=>copyText('support@realwin.example');
  $('.js-send').onclick=()=>{const msg=$('.js-msg').value.trim();if(!msg)return;
+  const subj=$('.js-subj').value;
+  if(window.CLOUD){
+   if(!me()){openAuth('login');return}
+   if(me().cloud){$('.js-send').disabled=true;
+    CLOUD.createTicket(subj,msg).then(r=>{$('.js-send').disabled=false;
+     if(r.error){toast('err',r.error);return}
+     $('.js-msg').value='';toast('ok',t('tk.created'));
+     notify('headset',t('sup.title'),'#'+r.id+' \u00b7 '+subj,true);loadMyTickets()});
+    return}}
   $('.js-msg').value='';const n='RW-'+ri(10000,99999);toast('ok',t('sup.sent',{n}));
   if(me())notify('headset',t('sup.title'),t('sup.sent',{n}),true)};
+ if(window.CLOUD&&me()&&me().cloud){
+  outlet().insertAdjacentHTML('beforeend',`<section class="sect rv in"><div class="sect-h"><span class="ico">${ic('history',17)}</span><h2 style="font-size:18px">${t('tk.title')}</h2></div><div class="card js-tklist"><div class="empty">${ic('refresh',28)}</div></div></section>`);
+  loadMyTickets();
+ }
 };
 
 /* ================= FAIRNESS ================= */
@@ -631,3 +653,87 @@ RT.add(/^\/terms$/,()=>Views.terms());
 RT.add(/^\/privacy$/,()=>Views.privacy());
 RT.add(/^\/responsible$/,()=>Views.responsible());
 RT.add(/^\/aml$/,()=>Views.aml());
+
+
+/* ================= CLOUD: tickets ================= */
+async function loadMyTickets(){
+ const box=$('.js-tklist');if(!box||!window.CLOUD)return;
+ const list=await CLOUD.myTickets();
+ if(!list.length){box.innerHTML=`<div class="empty">${ic('history',30)}<div class="t">${t('tk.empty')}</div></div>`;return}
+ box.innerHTML=list.map(tk=>`<div class="wrow" style="cursor:pointer" data-tk="${tk.id}" data-s="${esc(tk.subject)}">
+  <span class="ni" style="width:34px;height:34px;border-radius:10px;background:rgba(76,141,255,.13);color:#8AB4FF;display:flex;align-items:center;justify-content:center;flex:none">${ic('message',16)}</span>
+  <span style="min-width:0"><span class="wn">#${tk.id} · ${esc(tk.subject)}</span><br><span class="ws">${dts(Date.parse(tk.updated_at))}</span></span>
+  <span class="badge ${tk.status==='answered'?'green':tk.status==='closed'?'gray':'yellow'}" style="margin-left:auto">${t('tk.'+tk.status)}</span></div>`).join('');
+ $$('[data-tk]',box).forEach(r=>r.onclick=()=>openTicketThread(+r.dataset.tk,'#'+r.dataset.tk+' · '+r.dataset.s,false));
+}
+async function openTicketThread(id,title,staff){
+ const m=openModal(`<div class="m-body"><div class="m-title" style="font-size:16px;padding-right:30px">${esc(title)}</div>
+  <div class="js-tmsgs" style="max-height:44vh;overflow:auto;padding:14px 2px;display:flex;flex-direction:column;gap:10px"></div>
+  <div class="chat-in" style="padding:10px 0 0;border-top:1px solid var(--line)">
+   <input class="js-tin" placeholder="${t('chat.placeholder')}">
+   <button class="js-tsend">${ic('send',17)}</button></div></div>`,{klass:'md'});
+ async function loadMsgs(){
+  const msgs=await CLOUD.ticketMsgs(id);
+  $('.js-tmsgs',m.el).innerHTML=msgs.map(x=>`<div class="cmsg ${x.staff?'bot':'me'}" style="align-self:${x.staff?'flex-start':'flex-end'}">${esc(x.body)}<span class="cm-t">${x.staff?t('tk.staff'):(staff?t('feed.player'):t('tk.you'))} · ${dts(Date.parse(x.created_at))}</span></div>`).join('');
+  const bx=$('.js-tmsgs',m.el);bx.scrollTop=bx.scrollHeight;
+ }
+ await loadMsgs();
+ const send=async()=>{const i=$('.js-tin',m.el);const v=i.value.trim();if(!v)return;i.value='';
+  const r=await CLOUD.replyTicket(id,v,staff);
+  if(r.error){toast('err',r.error);return}
+  await loadMsgs()};
+ $('.js-tsend',m.el).onclick=send;
+ $('.js-tin',m.el).addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+}
+
+/* ================= CLOUD: admin panel ================= */
+Views.admin=function(){
+ if(!(window.CLOUD&&CLOUD.isStaff())){
+  outlet().innerHTML=`<div class="empty" style="padding:80px 20px">${ic('lock',34)}<div class="t">${t('adm.denied')}</div><a class="btn" href="#/">${t('nav.lobby')}</a></div>`;return}
+ outlet().innerHTML=`${pageHead(t('adm.title'),'RealWin backoffice')}
+  <div class="tabs rv in" style="margin-bottom:18px"><button class="tab act" data-t="users">${t('adm.users')}</button><button class="tab" data-t="tickets">${t('adm.tickets')}</button><button class="tab" data-t="tx">${t('adm.tx')}</button></div>
+  <div class="card js-abody" style="padding:8px 6px"><div class="empty">${ic('refresh',30)}</div></div>`;
+ const box=$('.js-abody');
+ async function rUsers(){
+  const us=await CLOUD.adminUsers();
+  box.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('auth.username')}</th><th>Email</th><th>${t('adm.role')}</th><th>${t('adm.balance')}</th><th>${t('prof.wagered')}</th><th>${t('tx.date')}</th><th></th></tr></thead><tbody>
+  ${us.map(u2=>`<tr><td style="font-weight:800">${esc(u2.username)} ${u2.banned?'<span class="badge red">BAN</span>':''}</td><td class="dim" style="font-size:12px">${esc(u2.email)}</td>
+   <td><span class="badge ${u2.role==='admin'?'blue':u2.role==='moderator'?'yellow':'gray'}">${u2.role}</span></td>
+   <td class="mono" style="font-weight:700">${fusd(u2.usd)}</td><td class="mono muted">${fusd(+u2.wagered)}</td>
+   <td class="dim" style="font-size:12px">${dts(Date.parse(u2.created_at))}</td>
+   <td style="white-space:nowrap"><button class="tailbtn js-adj" data-u="${u2.id}" data-n="${esc(u2.username)}">${t('adm.adjust')}</button>${u2.role==='player'?`<button class="tailbtn js-ban" data-u="${u2.id}" data-b="${u2.banned?0:1}" style="margin-left:6px;color:${u2.banned?'#5BD98F':'#F0898D'}">${u2.banned?t('adm.unban'):t('adm.ban')}</button>`:''}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  $$('.js-adj',box).forEach(b=>b.onclick=()=>openAdjust(b.dataset.u,b.dataset.n));
+  $$('.js-ban',box).forEach(b=>b.onclick=()=>CLOUD.adminBan(b.dataset.u,b.dataset.b==='1').then(r=>{if(r.error)toast('err',r.error);else{toast('ok','OK');rUsers()}}));
+ }
+ function openAdjust(uid2,name){
+  const m=openModal(`<div class="m-body"><div class="m-title" style="font-size:17px">${t('adm.adjust')} · ${esc(name)}</div>
+   <div class="field" style="margin-top:14px"><label>${t('adm.amount')}</label><input class="inp js-aamt" type="number" step="any" placeholder="100 / -50"></div>
+   <div class="field"><label>${t('adm.note')}</label><input class="inp js-anote" placeholder="Bonus"></div>
+   <button class="btn wide js-ago">${t('a.confirm')}</button></div>`);
+  $('.js-ago',m.el).onclick=()=>{const v=parseFloat($('.js-aamt',m.el).value)||0;if(!v)return;
+   CLOUD.adminAdjust(uid2,'USDT',v,$('.js-anote',m.el).value.trim()||null).then(r=>{
+    if(r.error){toast('err',r.error);return}
+    m.close();toast('ok',t('adm.adjusted'));rUsers()})};
+ }
+ async function rTickets(){
+  const ts2=await CLOUD.adminTickets();
+  box.innerHTML=ts2.length?ts2.map(tk=>`<div class="wrow" style="cursor:pointer" data-tk="${tk.id}" data-s="${esc(tk.subject)}">
+   <span class="badge ${tk.status==='answered'?'green':tk.status==='closed'?'gray':'yellow'}" style="flex:none">${t('tk.'+tk.status)}</span>
+   <span style="min-width:0;margin-left:6px"><span class="wn">#${tk.id} · ${esc(tk.subject)}</span><br><span class="ws">${esc(tk.profiles?tk.profiles.username+' · '+tk.profiles.email:'')}</span></span>
+   <span class="dim" style="margin-left:auto;font-size:12px;flex:none">${dts(Date.parse(tk.updated_at))}</span></div>`).join(''):`<div class="empty">${ic('message',30)}<div class="t">${t('tk.empty')}</div></div>`;
+  $$('[data-tk]',box).forEach(r=>r.onclick=()=>openTicketThread(+r.dataset.tk,'#'+r.dataset.tk+' · '+r.dataset.s,true));
+ }
+ async function rTx(){
+  const xs=await CLOUD.adminTx();
+  box.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('feed.player')}</th><th>${t('tx.type')}</th><th>${t('tx.amount')}</th><th style="text-align:right">${t('tx.date')}</th></tr></thead><tbody>
+  ${xs.map(x=>`<tr><td style="font-weight:700">${esc(x.profiles?x.profiles.username:'—')}</td>
+   <td>${t('tx.'+x.type)}${x.meta?` <span class="dim" style="font-size:11px">· ${esc(String(x.meta))}</span>`:''}</td>
+   <td class="mono ${+x.amount>0?'up':''}" style="font-weight:700">${+x.amount>0?'+':''}${fc(+x.amount,x.coin)} ${x.coin}</td>
+   <td class="dim" style="text-align:right;font-size:12px">${dts(Date.parse(x.created_at))}</td></tr>`).join('')}</tbody></table></div>`;
+ }
+ const render={users:rUsers,tickets:rTickets,tx:rTx};
+ $$('.tabs .tab',outlet()).forEach(b=>b.onclick=()=>{$$('.tabs .tab',outlet()).forEach(x=>x.classList.toggle('act',x===b));box.innerHTML=`<div class="empty">${ic('refresh',30)}</div>`;render[b.dataset.t]()});
+ rUsers();
+};
+RT.add(/^\/admin$/,()=>Views.admin());

@@ -43,3 +43,10 @@ window.addEventListener('resize',()=>{const b=$('.js-burger');if(b)b.style.displ
  else window.addEventListener('load',done,{once:true});
  setTimeout(done,4000);
 })();
+
+/* cloud session restore */
+if(window.CLOUD){
+ const acc=S.sessionEmail?S.accounts[S.sessionEmail]:null;
+ if(acc&&acc.cloud){S.sessionEmail=null;UI.renderShell()}
+ CLOUD.restore().then(ok=>{if(ok){UI.renderShell();renderRoute()}});
+}

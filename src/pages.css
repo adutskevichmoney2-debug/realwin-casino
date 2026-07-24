@@ -490,3 +490,11 @@ html,body{overflow-x:hidden}
 .bs-close{display:none;width:30px;height:30px;border-radius:8px;align-items:center;justify-content:center;color:var(--tx3);margin-left:6px;transition:.13s}
 .bs-close:hover{color:var(--tx);background:rgba(120,160,255,.08)}
 @media(max-width:1180px){.bs-close{display:flex}}
+
+/* ---------- OTP / cloud ---------- */
+.otp-row{display:flex;gap:9px;justify-content:center}
+.otp-i{width:46px;height:56px;text-align:center;font-family:var(--fm);font-size:22px;font-weight:700;background:var(--bg2);border:1px solid var(--line2);border-radius:13px;color:var(--tx);outline:none;transition:.15s}
+.otp-i:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(59,118,246,.18)}
+.shakeo{animation:shake .3s}
+@media(max-width:420px){.otp-i{width:40px;height:50px;font-size:19px}}
+.js-tsend{width:42px;height:42px;border-radius:11px;background:var(--accG);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}

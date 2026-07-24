@@ -155,7 +155,11 @@ en:{
  'promo.code.t':'Have a promo code?','promo.code.s':'Activate it and get an instant bonus to your balance','promo.code.ph':'Enter promo code','promo.code.btn':'Activate','promo.code.ok':'Promo code activated: +{a} USDT','promo.code.bad':'Code not found or already used',
  'pv.note.t':'Provider game','pv.note.b':'"{name}" by {prov} connects through the provider API at production launch. In this demo build, RealWin Originals are fully playable.','pv.open':'Open game','pv.playable':'Playable right now',
  'set.avatar':'Avatar','set.avatar.s':'JPG or PNG, stored in your browser','set.avatar.up':'Upload','set.avatar.rm':'Remove','set.avatar.ok':'Avatar updated',
- 'sp.featured':'Top picks','sp.winner':'Match winner','sp.draw':'Draw'
+ 'sp.featured':'Top picks','sp.winner':'Match winner','sp.draw':'Draw',
+ 'otp.title':'Confirm your email','otp.sub':'We sent a 6-digit code to {e}. Enter it below.','otp.btn':'Verify','otp.resend':'Resend code','otp.resent':'Code sent again','otp.wait':'Resend in {s}s','otp.bad':'Wrong or expired code',
+ 'cl.err':'Server error — try again','cl.banned':'Account is banned','cl.notconfirmed':'Email is not confirmed','cl.ratelimit':'Too many emails — built-in Supabase mail allows a few per hour, try later','cl.hello':'Account verified — welcome!',
+ 'tk.title':'My tickets','tk.new':'New ticket','tk.empty':'No tickets yet','tk.open':'Open','tk.answered':'Answered','tk.closed':'Closed','tk.reply':'Reply','tk.created':'Ticket created — the reply will appear in this section','tk.staff':'Support','tk.you':'You',
+ 'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -204,7 +208,11 @@ ru:{
  'promo.code.t':'Есть промокод?','promo.code.s':'Активируйте его и получите мгновенный бонус на баланс','promo.code.ph':'Введите промокод','promo.code.btn':'Активировать','promo.code.ok':'Промокод активирован: +{a} USDT','promo.code.bad':'Код не найден или уже использован',
  'pv.note.t':'Игра провайдера','pv.note.b':'«{name}» от {prov} подключается через API провайдера при боевом запуске платформы. В демо-сборке полностью играбельны эксклюзивы RealWin Originals.','pv.open':'Открыть игру','pv.playable':'Играбельно сейчас',
  'set.avatar':'Аватар','set.avatar.s':'JPG или PNG, хранится в вашем браузере','set.avatar.up':'Загрузить','set.avatar.rm':'Убрать','set.avatar.ok':'Аватар обновлён',
- 'sp.featured':'Лучший выбор','sp.winner':'Исход матча','sp.draw':'Ничья'
+ 'sp.featured':'Лучший выбор','sp.winner':'Исход матча','sp.draw':'Ничья',
+ 'otp.title':'Подтвердите почту','otp.sub':'Мы отправили 6-значный код на {e}. Введите его ниже.','otp.btn':'Подтвердить','otp.resend':'Отправить код ещё раз','otp.resent':'Код отправлен повторно','otp.wait':'Повторно через {s} с','otp.bad':'Неверный или истёкший код',
+ 'cl.err':'Ошибка сервера — попробуйте ещё раз','cl.banned':'Аккаунт заблокирован','cl.notconfirmed':'Почта не подтверждена','cl.ratelimit':'Слишком много писем — встроенная почта Supabase шлёт несколько в час, попробуйте позже','cl.hello':'Аккаунт подтверждён — добро пожаловать!',
+ 'tk.title':'Мои обращения','tk.new':'Новое обращение','tk.empty':'Обращений пока нет','tk.open':'Открыт','tk.answered':'Есть ответ','tk.closed':'Закрыт','tk.reply':'Ответить','tk.created':'Обращение создано — ответ появится в этом разделе','tk.staff':'Поддержка','tk.you':'Вы',
+ 'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
@@ -273,7 +281,7 @@ function loadS(){
  try{S=JSON.parse(store.getItem('rw_state_v1'))||null}catch(e){S=null}
  if(!S)S={lang:'ru',activeCoin:'USDT',fiatView:false,sessionEmail:null,accounts:{},guestFavs:[]};
 }
-const save=()=>{try{store.setItem('rw_state_v1',JSON.stringify(S))}catch(e){}};
+const save=()=>{try{store.setItem('rw_state_v1',JSON.stringify(S))}catch(e){}try{const _u=S&&S.sessionEmail?S.accounts[S.sessionEmail]:null;if(_u&&_u.cloud&&window.CLOUD)window.CLOUD.profileDirty()}catch(e){}};
 const me=()=>S.sessionEmail?S.accounts[S.sessionEmail]||null:null;
 const DEMO={bal:10000};
 
@@ -284,12 +292,12 @@ function newUser(email,name,pass){
  seeds:{client:uid()+uid(),serverHash:'',server:'',nonce:0}};
 }
 function favs(){const u=me();return u?u.favs:S.guestFavs}
-function toggleFav(slug){const f=favs();const i=f.indexOf(slug);if(i>=0){f.splice(i,1);toast('info',t('toast.fav.off'))}else{f.push(slug);toast('ok',t('toast.fav.on'))}save();return i<0}
+function toggleFav(slug){const f=favs();const i=f.indexOf(slug);if(i>=0){f.splice(i,1);toast('info',t('toast.fav.off'))}else{f.push(slug);toast('ok',t('toast.fav.on'))}save();const uu=me();if(uu&&uu.cloud&&window.CLOUD)window.CLOUD.fav(slug,i<0);return i<0}
 
 /* money */
 function bal(sym){const u=me();return u?(u.balances[sym]||0):0}
 function addBal(sym,d){const u=me();if(!u)return;u.balances[sym]=Math.max(0,(u.balances[sym]||0)+d);save();UI.balance()}
-function pushTx(o){const u=me();if(!u)return;u.txs.unshift({id:'TX'+uid().toUpperCase(),ts:Date.now(),status:'done',...o});u.txs=u.txs.slice(0,300);save()}
+function pushTx(o){const u=me();if(!u)return;u.txs.unshift({id:'TX'+uid().toUpperCase(),ts:Date.now(),status:'done',...o});u.txs=u.txs.slice(0,300);save();if(u.cloud&&window.CLOUD&&!o.cloudSkip)window.CLOUD.tx(o)}
 function notify(icn,title,body,silent){const u=me();const n={ic:icn,title,body,ts:Date.now(),read:false};if(u){u.notifs.unshift(n);u.notifs=u.notifs.slice(0,50);save()}if(!silent)toast('info',title,body);UI.bell&&UI.bell()}
 function wagerUsd(usd){const u=me();if(!u)return;const prev=vipLevel(u.wagered);u.wagered+=usd;u.rakeAvail+=usd*0.005;const now=vipLevel(u.wagered);if(now.i>prev.i){notify('trophy',t('n.level.t'),t('n.level.b',{l:now.name()}))}save()}
 
@@ -310,7 +318,7 @@ function recordBet(game,amt,mult,win,mode){const u=me();if(!u||mode==='demo')ret
  u.bets=u.bets.slice(0,200);u.pnl-=toUsd(amt,sym);
  pushTx({type:'bet',coin:sym,amount:-amt,meta:game});
  if(win)pushTx({type:'win',coin:sym,amount:amt*mult,meta:game});
- save()}
+ save();if(u.cloud&&window.CLOUD)window.CLOUD.bet(game,amt,sym,mult,win)}
 
 /* fake deposit address */
 function fakeAddr(sym,net){
