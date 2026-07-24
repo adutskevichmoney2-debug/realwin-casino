@@ -16,6 +16,7 @@ window.CLOUD = null;
    'User already registered': t('auth.err.exists'),
    'invalid_code': t('promo.code.bad'), 'already_used': t('promo.code.bad'),
    'banned': t('cl.banned'),
+   'pid_taken': t('adm.pid.taken'), 'bad_pid': t('adm.pid.bad'),
    'over_email_send_rate_limit': t('cl.ratelimit'),
    'email rate limit exceeded': t('cl.ratelimit')
   };
@@ -40,7 +41,7 @@ window.CLOUD = null;
   (wl.data||[]).forEach(w=>{ if(w.coin in balances) balances[w.coin] = +w.balance });
   const u = {
    email: p.email, name: p.username, pass: '', created: Date.parse(p.created_at),
-   hue: p.avatar_hue||210, cloud: true, id: uid, role: p.role,
+   hue: p.avatar_hue||210, cloud: true, id: uid, role: p.role, pid: p.pid||null,
    balances, txs: (tx.data||[]).map(mapTx),
    bets: (bt.data||[]).filter(b=>b.kind==='casino').map(b=>({id:'B'+b.id, g:b.game, ts:Date.parse(b.created_at), amt:+b.stake, sym:b.coin, mult:+b.mult, win:+b.payout>0, payout:+b.payout})),
    sbets: (bt.data||[]).filter(b=>b.kind==='sport').map(b=>({id:'S'+b.id, cloudId:b.id, ts:Date.parse(b.created_at), sym:b.coin, stake:+b.stake, odds:+b.mult, legs:(b.meta&&b.meta.legs)||[], label:(b.meta&&b.meta.label)||'Sports', status:b.status==='open'?'open':(b.status==='won'?'won':'lost'), settleAt:(b.meta&&b.meta.settleAt)||0})),
@@ -222,6 +223,10 @@ window.CLOUD = null;
   async adminDevices(){
    const {data}=await sb.from('devices').select('*, profiles(username,email)').order('last_seen',{ascending:false}).limit(500);
    return data||[];
+  },
+  async adminSetPid(user_id, pid){
+   const {error} = await sb.rpc('admin_set_pid', {p_user:user_id, p_pid:pid});
+   return error ? {error: errMsg(error)} : {ok:true};
   },
   async adminUserCard(uid){
    const [pr,wl,tx,bt,dv,tk]=await Promise.all([

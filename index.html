@@ -1049,7 +1049,9 @@ en:{
  'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment',
  'lnk.title':'Check your inbox','lnk.sub':'We sent an email to {e}. Click the confirmation button inside — this tab will sign in automatically.','lnk.waiting':'Waiting for confirmation…',
  'adm.devices':'Devices','adm.multi':'Possible multi-accounts (same device)','adm.nomulti':'No matches found','adm.device':'Device','adm.lastseen':'Last seen','adm.users2':'acc',
- 'adm.search':'Search: email, name or player ID','adm.open':'Open','adm.card':'Player card','adm.balances':'Balances','adm.deposits':'Deposits','adm.withdrawals':'Withdrawals','adm.nodata':'No data'
+ 'adm.search':'Search: email, name or player ID','adm.open':'Open','adm.card':'Player card','adm.balances':'Balances','adm.deposits':'Deposits','adm.withdrawals':'Withdrawals','adm.nodata':'No data',
+ 'adm.pid.change':'Change ID','adm.pid.new':'New ID (digits only)','adm.pid.taken':'This ID is already taken','adm.pid.bad':'Invalid ID','adm.pid.ok':'ID changed',
+ 'w.addr.demo':'Demo mode: deposit addresses are disabled so nobody sends real crypto by mistake. Real addresses will appear once payment processing is connected.'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -1105,7 +1107,9 @@ ru:{
  'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка',
  'lnk.title':'Проверьте почту','lnk.sub':'Мы отправили письмо на {e}. Нажмите кнопку подтверждения в письме — эта вкладка войдёт автоматически.','lnk.waiting':'Ожидаем подтверждение…',
  'adm.devices':'Устройства','adm.multi':'Возможные мультиакки (одно устройство)','adm.nomulti':'Совпадений не найдено','adm.device':'Устройство','adm.lastseen':'Был','adm.users2':'акк',
- 'adm.search':'Поиск: email, имя или ID игрока','adm.open':'Открыть','adm.card':'Досье игрока','adm.balances':'Балансы','adm.deposits':'Депозиты','adm.withdrawals':'Выводы','adm.nodata':'Нет данных'
+ 'adm.search':'Поиск: email, имя или ID игрока','adm.open':'Открыть','adm.card':'Досье игрока','adm.balances':'Балансы','adm.deposits':'Депозиты','adm.withdrawals':'Выводы','adm.nodata':'Нет данных',
+ 'adm.pid.change':'Изменить ID','adm.pid.new':'Новый ID (только цифры)','adm.pid.taken':'Такой ID уже занят','adm.pid.bad':'Некорректный ID','adm.pid.ok':'ID изменён',
+ 'w.addr.demo':'Демо-режим: адреса депозита отключены, чтобы никто случайно не отправил настоящую криптовалюту. Реальные адреса появятся после подключения платёжного процессинга.'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
@@ -1367,6 +1371,7 @@ window.CLOUD = null;
    'User already registered': t('auth.err.exists'),
    'invalid_code': t('promo.code.bad'), 'already_used': t('promo.code.bad'),
    'banned': t('cl.banned'),
+   'pid_taken': t('adm.pid.taken'), 'bad_pid': t('adm.pid.bad'),
    'over_email_send_rate_limit': t('cl.ratelimit'),
    'email rate limit exceeded': t('cl.ratelimit')
   };
@@ -1391,7 +1396,7 @@ window.CLOUD = null;
   (wl.data||[]).forEach(w=>{ if(w.coin in balances) balances[w.coin] = +w.balance });
   const u = {
    email: p.email, name: p.username, pass: '', created: Date.parse(p.created_at),
-   hue: p.avatar_hue||210, cloud: true, id: uid, role: p.role,
+   hue: p.avatar_hue||210, cloud: true, id: uid, role: p.role, pid: p.pid||null,
    balances, txs: (tx.data||[]).map(mapTx),
    bets: (bt.data||[]).filter(b=>b.kind==='casino').map(b=>({id:'B'+b.id, g:b.game, ts:Date.parse(b.created_at), amt:+b.stake, sym:b.coin, mult:+b.mult, win:+b.payout>0, payout:+b.payout})),
    sbets: (bt.data||[]).filter(b=>b.kind==='sport').map(b=>({id:'S'+b.id, cloudId:b.id, ts:Date.parse(b.created_at), sym:b.coin, stake:+b.stake, odds:+b.mult, legs:(b.meta&&b.meta.legs)||[], label:(b.meta&&b.meta.label)||'Sports', status:b.status==='open'?'open':(b.status==='won'?'won':'lost'), settleAt:(b.meta&&b.meta.settleAt)||0})),
@@ -1573,6 +1578,10 @@ window.CLOUD = null;
   async adminDevices(){
    const {data}=await sb.from('devices').select('*, profiles(username,email)').order('last_seen',{ascending:false}).limit(500);
    return data||[];
+  },
+  async adminSetPid(user_id, pid){
+   const {error} = await sb.rpc('admin_set_pid', {p_user:user_id, p_pid:pid});
+   return error ? {error: errMsg(error)} : {ok:true};
   },
   async adminUserCard(uid){
    const [pr,wl,tx,bt,dv,tk]=await Promise.all([
@@ -1917,15 +1926,13 @@ function openWallet(tab='deposit',coinSel){
  function renderMain(){
   const u=me();
   if(tab==='deposit'){
-   const addr=fakeAddr(coin,net);
    main.innerHTML=`<div class="m-sub" style="margin-bottom:12px">${t('w.address',{c:coin})}</div>
     <div class="betrow"><label>${t('w.network')}</label><div class="nets">${NETWORKS[coin].map(n=>`<button class="chip ${n===net?'act':''}" data-n="${n}">${n}</button>`).join('')}</div></div>
-    <div class="qrbox"><div class="qr">${qrHTML(addr)}</div>
-     <div style="flex:1;min-width:0"><div class="addrbox"><span class="a">${addr}</span><button class="tailbtn js-copy" style="flex:none">${ic('copy',14)} ${t('a.copy')}</button></div>
-     <div class="note">${ic('info',16)}<span>${t('w.min',{a:fc(fromUsd(5,coin),coin)+' '+coin})}</span></div></div></div>
+    <div class="qrbox"><div class="qr" style="display:flex;align-items:center;justify-content:center;background:var(--card2);color:var(--tx3)">${ic('lock',36)}</div>
+     <div style="flex:1;min-width:0"><div class="addrbox"><span class="a" style="letter-spacing:3px;font-weight:700">************************</span><span class="badge yellow" style="flex:none">${t('misc.demo')}</span></div>
+     <div class="note warn">${ic('alert',16)}<span>${t('w.addr.demo')}</span></div></div></div>
     <button class="btn green wide js-sim">${ic('plus',17)} ${t('w.simulate')}</button>`;
    $$('.nets .chip',main).forEach(b=>b.onclick=()=>{net=b.dataset.n;renderMain()});
-   $('.js-copy',main).onclick=()=>copyText(addr);
    $('.js-sim',main).onclick=()=>{
     const lim=u.limits.dep;
     if(lim&&u.depToday+1000>lim){toast('warn',t('set.limit.hit'));return}
@@ -1936,7 +1943,7 @@ function openWallet(tab='deposit',coinSel){
   }else if(tab==='withdraw'){
    const b=bal(coin),fee=FEES[coin]||0,minW=fromUsd(10,coin);
    main.innerHTML=`<div class="m-sub" style="margin-bottom:12px">${t('w.wd.min',{a:fc(minW,coin)+' '+coin})} · ${t('w.balance')}: <b class="mono">${fc(b,coin)} ${coin}</b></div>
-    <div class="field js-f-addr"><label>${t('w.wd.address')}</label><div class="fwrap">${ic('wallet',16)}<input class="inp js-addr" placeholder="${fakeAddr(coin,net).slice(0,18)}…"></div><span class="ferr">${t('w.wd.err.addr')}</span></div>
+    <div class="field js-f-addr"><label>${t('w.wd.address')}</label><div class="fwrap">${ic('wallet',16)}<input class="inp js-addr" placeholder="${t('w.wd.address')}"></div><span class="ferr">${t('w.wd.err.addr')}</span></div>
     <div class="field js-f-amt"><label>${t('w.wd.amount')}</label><div class="betamt"><input class="js-amt" type="number" min="0" step="any" placeholder="0.00"><button class="bab js-max">MAX</button><span style="font-weight:800;font-size:12px;color:var(--tx2)">${coin}</span></div><span class="ferr">${t('w.wd.err.amt')}</span></div>
     <div class="gstat3" style="grid-template-columns:1fr 1fr"><div class="gs"><div class="l">${t('w.wd.fee')}</div><div class="v">${fc(fee,coin)} ${coin}</div></div><div class="gs"><div class="l">${t('w.wd.get')}</div><div class="v js-get">0.00 ${coin}</div></div></div>
     <button class="btn wide lg js-wd">${t('w.wd.btn')}</button>`;
@@ -2550,7 +2557,7 @@ Views.profile=function(tab){
   box.innerHTML=`<div class="card rv in" style="margin-bottom:16px"><div class="phead">
    <label class="avup" title="${t('set.avatar.up')}">${avatarHTML(u)}<span class="cam">${ic('upload',20)}</span><input type="file" class="js-avf" accept="image/*" hidden></label>
    <div style="flex:1;min-width:0"><h2 style="font-size:21px">${esc(u.name)}</h2><div class="dim" style="font-size:12.5px">${t('prof.joined',{d:new Date(u.created).toLocaleDateString(S.lang==='ru'?'ru-RU':'en-US',{month:'long',year:'numeric'})})}</div>
-   <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${u.cloud?`<button class="badge gray js-pid" style="cursor:pointer" title="${t('a.copy')}">ID ${esc(u.id.slice(0,8).toUpperCase())} ${ic('copy',10)}</button>`:''}<span class="badge blue">${ic('gem',11)} ${vipLevel(u.wagered).name()}</span>
+   <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${u.cloud?`<button class="badge gray js-pid" style="cursor:pointer" title="${t('a.copy')}">ID ${esc(u.pid?String(u.pid):u.id.slice(0,8).toUpperCase())} ${ic('copy',10)}</button>`:''}<span class="badge blue">${ic('gem',11)} ${vipLevel(u.wagered).name()}</span>
    <span class="badge ${u.verif.status==='ok'?'green':u.verif.status==='pending'?'yellow':'gray'}">${ic('shield',11)} ${t('kyc.status.'+(u.verif.status==='ok'?'ok':u.verif.status==='pending'?'pending':'none'))}</span></div></div></div>
    <div class="prg"><i style="width:${prog}%"></i></div>
    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;font-weight:700;color:var(--tx3)"><span>${t('prof.level')}: ${lvl.name()}</span>${lvl.i<VIPS.length-1?`<span>${t('prof.tolevel',{a:fusd(Math.max(0,next.req-u.wagered)),l:next.name()})}</span>`:''}</div></div>
@@ -2563,7 +2570,7 @@ Views.profile=function(tab){
   const avf=$('.js-avf',box);
   if(avf)avf.onchange=()=>setAvatarFromFile(avf.files[0],()=>P.overview());
   const pid=$('.js-pid',box);
-  if(pid)pid.onclick=()=>copyText(u.id.slice(0,8).toUpperCase());
+  if(pid)pid.onclick=()=>copyText(u.pid?String(u.pid):u.id.slice(0,8).toUpperCase());
  };
  function betsTable(list){
   if(!list.length)return `<div class="empty">${ic('dice',30)}<div class="t">${t('prof.nobets')}</div></div>`;
@@ -2852,11 +2859,11 @@ Views.admin=function(){
   box.innerHTML=`<div style="padding:8px 8px 14px"><div class="fwrap">${ic('search',15)}<input class="inp js-usearch" style="height:42px" placeholder="${t('adm.search')}"></div></div><div class="js-utab"></div>`;
   const draw=q=>{
    q=(q||'').trim().toLowerCase();
-   const list=USERS_CACHE.filter(u2=>!q||u2.email.toLowerCase().includes(q)||u2.username.toLowerCase().includes(q)||u2.id.toLowerCase().startsWith(q)||u2.id.slice(0,8).toLowerCase()===q);
+   const list=USERS_CACHE.filter(u2=>!q||u2.email.toLowerCase().includes(q)||u2.username.toLowerCase().includes(q)||u2.id.toLowerCase().startsWith(q)||String(u2.pid||'').startsWith(q));
    $('.js-utab',box).innerHTML=list.length?`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('auth.username')}</th><th>Email</th><th>ID</th><th>${t('adm.role')}</th><th>${t('adm.balance')}</th><th>${t('prof.wagered')}</th><th></th></tr></thead><tbody>
    ${list.map(u2=>`<tr class="js-urow" data-u="${u2.id}" style="cursor:pointer"><td style="font-weight:800">${esc(u2.username)} ${u2.banned?'<span class="badge red">BAN</span>':''}</td>
     <td style="font-size:12.5px;word-break:break-all;min-width:180px;color:var(--tx2)">${esc(u2.email)}</td>
-    <td class="mono dim" style="font-size:11px">${esc(u2.id.slice(0,8).toUpperCase())}</td>
+    <td class="mono" style="font-size:12px;font-weight:700">${esc(u2.pid?String(u2.pid):u2.id.slice(0,8).toUpperCase())}</td>
     <td><span class="badge ${u2.role==='admin'?'blue':u2.role==='moderator'?'yellow':'gray'}">${u2.role}</span></td>
     <td class="mono" style="font-weight:700">${fusd(u2.usd)}</td><td class="mono muted">${fusd(+u2.wagered)}</td>
     <td><button class="tailbtn js-open" data-u="${u2.id}">${t('adm.open')}</button></td></tr>`).join('')}
@@ -2882,7 +2889,7 @@ Views.admin=function(){
    <td class="mono muted">${fc(+b.stake,b.coin)} ${b.coin}</td><td class="mono">${(+b.mult).toFixed(2)}\u00d7</td>
    <td>${b.status==='open'?`<span class="badge yellow">${t('bets.open')}</span>`:(+b.payout>0?`<span class="badge green">+${fc(+b.payout,b.coin)}</span>`:`<span class="badge red">${t('bets.lost')}</span>`)}</td>
    <td class="dim" style="text-align:right;font-size:11.5px;white-space:nowrap">${dts(Date.parse(b.created_at))}</td></tr>`).join('');
-  const devRows=d.devices.map(dv=>`<div class="wrow" style="margin-bottom:7px"><span style="min-width:0"><span class="wn" style="font-size:12.5px">${esc((dv.platform||'?')+' \u00b7 '+(dv.screen||''))}</span><br><span class="ws">${esc(dv.tz||'')} \u00b7 IP ${esc(dv.ip||'\u2014')} \u00b7 fp ${esc((dv.fp||'').slice(0,12))}\u2026</span></span><span class="dim" style="margin-left:auto;font-size:11px;flex:none">${dts(Date.parse(dv.last_seen))}</span></div>`).join('');
+  const devRows=d.devices.map(dv=>`<div class="wrow" style="margin-bottom:7px"><span style="min-width:0"><span class="wn" style="font-size:12.5px">${esc((dv.platform||'?')+' \u00b7 '+(dv.screen||''))}</span><br><span class="ws" style="word-break:break-all">${esc(dv.tz||'')} \u00b7 IP ${esc(dv.ip||'\u2014')} \u00b7 fp ${esc(dv.fp||'')}</span></span><span class="dim" style="margin-left:auto;font-size:11px;flex:none">${dts(Date.parse(dv.last_seen))}</span></div>`).join('');
   const tkRows=d.tickets.map(tk=>`<div class="wrow" style="cursor:pointer;margin-bottom:7px" data-tk="${tk.id}" data-s="${esc(tk.subject)}"><span class="badge ${tk.status==='answered'?'green':tk.status==='closed'?'gray':'yellow'}" style="flex:none">${t('tk.'+tk.status)}</span><span class="wn" style="margin-left:8px;min-width:0">#${tk.id} \u00b7 ${esc(tk.subject)}</span><span class="dim" style="margin-left:auto;font-size:11px;flex:none">${dts(Date.parse(tk.updated_at))}</span></div>`).join('');
   $('.m-body',m.el).innerHTML=`
    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-right:34px">
@@ -2890,7 +2897,7 @@ Views.admin=function(){
     <div style="min-width:0;flex:1">
      <div style="font-family:var(--fd);font-weight:800;font-size:18px">${esc(p.username)} ${p.banned?'<span class="badge red">BAN</span>':''} <span class="badge ${p.role==='admin'?'blue':p.role==='moderator'?'yellow':'gray'}">${p.role}</span></div>
      <div class="mono" style="font-size:12.5px;word-break:break-all;color:var(--tx2)">${esc(p.email)}</div>
-     <div class="dim mono" style="font-size:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap">ID <b>${esc(p.id.slice(0,8).toUpperCase())}</b> <button class="tailbtn js-cpid" style="height:22px;padding:0 7px">${ic('copy',11)}</button> <span>\u00b7 ${dts(Date.parse(p.created_at))}</span></div>
+     <div class="dim mono" style="font-size:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap">ID <b style="font-size:14px;color:var(--tx)">${esc(p.pid?String(p.pid):p.id.slice(0,8).toUpperCase())}</b> <button class="tailbtn js-cpid" style="height:22px;padding:0 7px">${ic('copy',11)}</button> <button class="tailbtn js-cpide" style="height:22px;padding:0 8px">${t('adm.pid.change')}</button> <span>\u00b7 ${dts(Date.parse(p.created_at))}</span></div>
     </div>
     <div style="display:flex;gap:8px;flex:none">
      <button class="btn sm js-cadj">${t('adm.adjust')}</button>
@@ -2912,7 +2919,20 @@ Views.admin=function(){
    <div style="margin:6px 0 16px">${devRows||`<span class="dim">${t('adm.nodata')}</span>`}</div>
    <div class="dd-h" style="padding:6px 2px">${t('adm.tickets')} (${d.tickets.length})</div>
    <div style="margin:6px 0 4px">${tkRows||`<span class="dim">${t('adm.nodata')}</span>`}</div>`;
-  $('.js-cpid',m.el).onclick=()=>copyText(p.id.slice(0,8).toUpperCase());
+  $('.js-cpid',m.el).onclick=()=>copyText(p.pid?String(p.pid):p.id.slice(0,8).toUpperCase());
+  $('.js-cpide',m.el).onclick=()=>{
+   const m2=openModal(`<div class=\"m-body\"><div class=\"m-title\" style=\"font-size:17px\">${t('adm.pid.change')} \u00b7 ${esc(p.username)}</div>
+    <div class=\"field\" style=\"margin-top:14px\"><label>${t('adm.pid.new')}</label><input class=\"inp js-npid\" inputmode=\"numeric\" maxlength=\"12\" placeholder=\"7777777\" value=\"${p.pid||''}\"></div>
+    <button class=\"btn wide js-pgo2\">${t('a.save')}</button></div>`);
+   $('.js-pgo2',m2.el).onclick=()=>{
+    const v=($('.js-npid',m2.el).value||'').replace(/\\D/g,'');
+    if(!v){toast('err',t('adm.pid.bad'));return}
+    CLOUD.adminSetPid(p.id,+v).then(r=>{
+     if(r.error){toast('err',r.error);return}
+     toast('ok',t('adm.pid.ok'));m2.close();m.close();rUsers();openPlayerCard(uid2);
+     const cu=me();if(cu&&cu.id===p.id){cu.pid=+v;save();}
+    })};
+  };
   $('.js-cadj',m.el).onclick=()=>openAdjust(p.id,p.username);
   const cb=$('.js-cban',m.el);
   if(cb)cb.onclick=()=>CLOUD.adminBan(p.id,!p.banned).then(r=>{if(r.error){toast('err',r.error);return}toast('ok','OK');m.close();rUsers()});
@@ -2950,7 +2970,7 @@ Views.admin=function(){
   ds.forEach(d=>{(byFp[d.fp]=byFp[d.fp]||[]).push(d)});
   const multi=Object.values(byFp).map(g=>{const seen={};const users=g.filter(x=>{if(seen[x.user_id])return false;seen[x.user_id]=1;return true});return{fp:g[0].fp,users,ip:g[0].ip}}).filter(x=>x.users.length>1);
   box.innerHTML=`<div class="dd-h" style="padding:10px 12px">${t('adm.multi')}</div>
-   ${multi.length?multi.map(m=>`<div class="wrow"><span class="badge red" style="flex:none">${m.users.length} ${t('adm.users2')}</span><span style="min-width:0;margin-left:8px"><span class="wn">${m.users.map(x=>esc(x.profiles?x.profiles.username:'?')).join(' \u00b7 ')}</span><br><span class="ws">${m.users.map(x=>esc(x.profiles?x.profiles.email:'')).join(' \u00b7 ')}</span><br><span class="ws mono">fp ${esc(m.fp.slice(0,16))}\u2026${m.ip?' \u00b7 IP '+esc(m.ip):''}</span></span></div>`).join(''):`<div class="empty" style="padding:22px">${ic('check',26)}<div class="t">${t('adm.nomulti')}</div></div>`}
+   ${multi.length?multi.map(m=>`<div class="wrow"><span class="badge red" style="flex:none">${m.users.length} ${t('adm.users2')}</span><span style="min-width:0;margin-left:8px"><span class="wn">${m.users.map(x=>esc(x.profiles?x.profiles.username:'?')).join(' \u00b7 ')}</span><br><span class="ws">${m.users.map(x=>esc(x.profiles?x.profiles.email:'')).join(' \u00b7 ')}</span><br><span class="ws mono" style="word-break:break-all">fp ${esc(m.fp)}${m.ip?' \u00b7 IP '+esc(m.ip):''}</span></span></div>`).join(''):`<div class="empty" style="padding:22px">${ic('check',26)}<div class="t">${t('adm.nomulti')}</div></div>`}
    <div class="dd-h" style="padding:16px 12px 10px">${t('adm.devices')}</div>
    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('feed.player')}</th><th>${t('adm.device')}</th><th>IP</th><th>TZ</th><th style="text-align:right">${t('adm.lastseen')}</th></tr></thead><tbody>
    ${ds.slice(0,120).map(d=>`<tr><td style="font-weight:700">${esc(d.profiles?d.profiles.username:'\u2014')}<div class="dim" style="font-size:11px">${esc(d.profiles?d.profiles.email:'')}</div></td>

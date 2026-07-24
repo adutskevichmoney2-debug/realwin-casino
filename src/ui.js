@@ -313,15 +313,13 @@ function openWallet(tab='deposit',coinSel){
  function renderMain(){
   const u=me();
   if(tab==='deposit'){
-   const addr=fakeAddr(coin,net);
    main.innerHTML=`<div class="m-sub" style="margin-bottom:12px">${t('w.address',{c:coin})}</div>
     <div class="betrow"><label>${t('w.network')}</label><div class="nets">${NETWORKS[coin].map(n=>`<button class="chip ${n===net?'act':''}" data-n="${n}">${n}</button>`).join('')}</div></div>
-    <div class="qrbox"><div class="qr">${qrHTML(addr)}</div>
-     <div style="flex:1;min-width:0"><div class="addrbox"><span class="a">${addr}</span><button class="tailbtn js-copy" style="flex:none">${ic('copy',14)} ${t('a.copy')}</button></div>
-     <div class="note">${ic('info',16)}<span>${t('w.min',{a:fc(fromUsd(5,coin),coin)+' '+coin})}</span></div></div></div>
+    <div class="qrbox"><div class="qr" style="display:flex;align-items:center;justify-content:center;background:var(--card2);color:var(--tx3)">${ic('lock',36)}</div>
+     <div style="flex:1;min-width:0"><div class="addrbox"><span class="a" style="letter-spacing:3px;font-weight:700">************************</span><span class="badge yellow" style="flex:none">${t('misc.demo')}</span></div>
+     <div class="note warn">${ic('alert',16)}<span>${t('w.addr.demo')}</span></div></div></div>
     <button class="btn green wide js-sim">${ic('plus',17)} ${t('w.simulate')}</button>`;
    $$('.nets .chip',main).forEach(b=>b.onclick=()=>{net=b.dataset.n;renderMain()});
-   $('.js-copy',main).onclick=()=>copyText(addr);
    $('.js-sim',main).onclick=()=>{
     const lim=u.limits.dep;
     if(lim&&u.depToday+1000>lim){toast('warn',t('set.limit.hit'));return}
@@ -332,7 +330,7 @@ function openWallet(tab='deposit',coinSel){
   }else if(tab==='withdraw'){
    const b=bal(coin),fee=FEES[coin]||0,minW=fromUsd(10,coin);
    main.innerHTML=`<div class="m-sub" style="margin-bottom:12px">${t('w.wd.min',{a:fc(minW,coin)+' '+coin})} · ${t('w.balance')}: <b class="mono">${fc(b,coin)} ${coin}</b></div>
-    <div class="field js-f-addr"><label>${t('w.wd.address')}</label><div class="fwrap">${ic('wallet',16)}<input class="inp js-addr" placeholder="${fakeAddr(coin,net).slice(0,18)}…"></div><span class="ferr">${t('w.wd.err.addr')}</span></div>
+    <div class="field js-f-addr"><label>${t('w.wd.address')}</label><div class="fwrap">${ic('wallet',16)}<input class="inp js-addr" placeholder="${t('w.wd.address')}"></div><span class="ferr">${t('w.wd.err.addr')}</span></div>
     <div class="field js-f-amt"><label>${t('w.wd.amount')}</label><div class="betamt"><input class="js-amt" type="number" min="0" step="any" placeholder="0.00"><button class="bab js-max">MAX</button><span style="font-weight:800;font-size:12px;color:var(--tx2)">${coin}</span></div><span class="ferr">${t('w.wd.err.amt')}</span></div>
     <div class="gstat3" style="grid-template-columns:1fr 1fr"><div class="gs"><div class="l">${t('w.wd.fee')}</div><div class="v">${fc(fee,coin)} ${coin}</div></div><div class="gs"><div class="l">${t('w.wd.get')}</div><div class="v js-get">0.00 ${coin}</div></div></div>
     <button class="btn wide lg js-wd">${t('w.wd.btn')}</button>`;
