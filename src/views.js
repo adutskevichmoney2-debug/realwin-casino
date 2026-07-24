@@ -279,7 +279,7 @@ Views.sports=function(){
   renderAll();renderSlip()}
  const dot=tm=>`<span class="tdot" style="background:${tm.c}">${esc(tm.n.slice(0,2).toUpperCase())}</span>`;
  function oddBtn2(m,k){const lbl=k==='1'?m.h.n:k==='2'?m.a.n:t('sp.draw');
-  return `<button class="odd2 ${selHas(m.id,k)?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="on2">${esc(lbl)}</span><span class="ov2">${m.odds[k].toFixed(2)}</span></button>`}
+  return `<button class="odd2 ${selHas(m.id,k)?'sel':''}" data-m="${m.id}" data-k="${k}"><span class="ok2">${k}</span><span class="on2">${esc(lbl)}</span><span class="ov2">${m.odds[k].toFixed(2)}</span></button>`}
  function matchHTML(m){
   const time=m.live?`<span class="badge red live">${t('sp.live')} \u00b7 ${t('sp.min',{n:m.live.min})}</span>`:`<span class="badge gray">${fmtT(m.ts)}</span>`;
   return `<div class="match2">
