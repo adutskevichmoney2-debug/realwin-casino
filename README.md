@@ -2,7 +2,9 @@
 
 Премиальный фронтенд онлайн-казино в тёмно-синей стилистике: SPA на чистом HTML/CSS/JS без фреймворков, собирается в **один самодостаточный файл** `index.html` (все изображения встроены base64).
 
-**🔗 Живая демка:** https://hyperagent.com/s/qnDyxRJXAhwpqNjdjDWSMw
+**🔗 Сайт:** https://realwin-casino.vercel.app (Vercel, автодеплой из main)
+
+**Зеркала:** https://adutskevichmoney2-debug.github.io/realwin-casino/ · https://hyperagent.com/s/qnDyxRJXAhwpqNjdjDWSMw
 
 > ⚠️ Это демонстрационная сборка интерфейса. Аккаунты, балансы и ставки симулируются на стороне клиента (localStorage). Для реального запуска нужны бэкенд, платёжная инфраструктура и лицензия.
 

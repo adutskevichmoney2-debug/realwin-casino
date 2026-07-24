@@ -1047,7 +1047,8 @@ en:{
  'cl.err':'Server error — try again','cl.banned':'Account is banned','cl.notconfirmed':'Email is not confirmed','cl.ratelimit':'Too many emails — built-in Supabase mail allows a few per hour, try later','cl.hello':'Account verified — welcome!',
  'tk.title':'My tickets','tk.new':'New ticket','tk.empty':'No tickets yet','tk.open':'Open','tk.answered':'Answered','tk.closed':'Closed','tk.reply':'Reply','tk.created':'Ticket created — the reply will appear in this section','tk.staff':'Support','tk.you':'You',
  'adm.title':'Admin panel','adm.users':'Users','adm.tickets':'Tickets','adm.tx':'Transactions','adm.balance':'Balance (USD)','adm.adjust':'Adjust','adm.ban':'Ban','adm.unban':'Unban','adm.role':'Role','adm.adjusted':'Balance adjusted','adm.amount':'Amount (+/-) in USDT','adm.note':'Note','adm.denied':'Access denied','tx.adjust':'Adjustment',
- 'lnk.title':'Check your inbox','lnk.sub':'We sent an email to {e}. Click the confirmation button inside — this tab will sign in automatically.','lnk.waiting':'Waiting for confirmation…'
+ 'lnk.title':'Check your inbox','lnk.sub':'We sent an email to {e}. Click the confirmation button inside — this tab will sign in automatically.','lnk.waiting':'Waiting for confirmation…',
+ 'adm.devices':'Devices','adm.multi':'Possible multi-accounts (same device)','adm.nomulti':'No matches found','adm.device':'Device','adm.lastseen':'Last seen','adm.users2':'acc'
 },
 ru:{
  'nav.casino':'Казино','nav.sports':'Спорт','nav.promos':'Бонусы','nav.vip':'VIP-клуб','nav.affiliate':'Партнёрам','nav.support':'Поддержка','nav.fairness':'Честность','nav.lobby':'Лобби','nav.originals':'Originals','nav.slots':'Слоты','nav.live':'Live-казино','nav.new':'Новинки','nav.popular':'Популярное','nav.favorites':'Избранное','nav.menu':'Меню','nav.games':'Игры','nav.other':'Прочее',
@@ -1101,7 +1102,8 @@ ru:{
  'cl.err':'Ошибка сервера — попробуйте ещё раз','cl.banned':'Аккаунт заблокирован','cl.notconfirmed':'Почта не подтверждена','cl.ratelimit':'Слишком много писем — встроенная почта Supabase шлёт несколько в час, попробуйте позже','cl.hello':'Аккаунт подтверждён — добро пожаловать!',
  'tk.title':'Мои обращения','tk.new':'Новое обращение','tk.empty':'Обращений пока нет','tk.open':'Открыт','tk.answered':'Есть ответ','tk.closed':'Закрыт','tk.reply':'Ответить','tk.created':'Обращение создано — ответ появится в этом разделе','tk.staff':'Поддержка','tk.you':'Вы',
  'adm.title':'Админ-панель','adm.users':'Пользователи','adm.tickets':'Тикеты','adm.tx':'Транзакции','adm.balance':'Баланс (USD)','adm.adjust':'Баланс ±','adm.ban':'Бан','adm.unban':'Разбан','adm.role':'Роль','adm.adjusted':'Баланс изменён','adm.amount':'Сумма (+/-) в USDT','adm.note':'Комментарий','adm.denied':'Нет доступа','tx.adjust':'Корректировка',
- 'lnk.title':'Проверьте почту','lnk.sub':'Мы отправили письмо на {e}. Нажмите кнопку подтверждения в письме — эта вкладка войдёт автоматически.','lnk.waiting':'Ожидаем подтверждение…'
+ 'lnk.title':'Проверьте почту','lnk.sub':'Мы отправили письмо на {e}. Нажмите кнопку подтверждения в письме — эта вкладка войдёт автоматически.','lnk.waiting':'Ожидаем подтверждение…',
+ 'adm.devices':'Устройства','adm.multi':'Возможные мультиакки (одно устройство)','adm.nomulti':'Совпадений не найдено','adm.device':'Устройство','adm.lastseen':'Был','adm.users2':'акк'
 }
 };
 const t=(k,vars)=>{let s=(I18N[S.lang]&&I18N[S.lang][k])??I18N.en[k]??k;if(vars)for(const v in vars)s=s.replaceAll('{'+v+'}',vars[v]);return s};
@@ -1400,6 +1402,7 @@ window.CLOUD = null;
    seeds: (p.settings&&p.settings.seeds)||{client:uid.slice(0,16), serverHash:'', server:'', nonce:0}
   };
   S.accounts[u.email] = u; S.sessionEmail = u.email; save();
+  logDevice();
   return true;
  }
 
@@ -1408,6 +1411,20 @@ window.CLOUD = null;
    settings: { claimed:u.claimed||{}, rakeAvail:+(u.rakeAvail||0).toFixed(4), verif:u.verif, privacy:!!u.privacy, limits:u.limits, seeds:u.seeds } };
  }
 
+ async function deviceFingerprint(){
+  const parts=[navigator.userAgent,navigator.platform||'',screen.width+'x'+screen.height+'x'+screen.colorDepth,
+   Intl.DateTimeFormat().resolvedOptions().timeZone||'',navigator.language||'',navigator.hardwareConcurrency||'',navigator.deviceMemory||''].join('|');
+  const h=await sha256hex(parts); return h.slice(0,32);
+ }
+ async function logDevice(){
+  try{
+   const fp=await deviceFingerprint();
+   let ip=null;
+   try{const c=new AbortController();setTimeout(()=>c.abort(),4000);
+    const r=await fetch('https://api.ipify.org?format=json',{signal:c.signal});ip=(await r.json()).ip}catch(e){}
+   await sb.rpc('log_device',{p_fp:fp,p_ua:navigator.userAgent,p_platform:navigator.platform||'',p_screen:screen.width+'x'+screen.height,p_tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'',p_lang:navigator.language||'',p_ip:ip});
+  }catch(e){console.warn('device log',e)}
+ }
  window.CLOUD = {
   sb, on: true, emailMode: (cfg.EMAIL_MODE==='code'?'code':'link'),
   pollSession(cb){
@@ -1550,6 +1567,10 @@ window.CLOUD = null;
   async adminTickets(){
    const {data} = await sb.from('support_tickets').select('*, profiles(username,email)').order('updated_at',{ascending:false}).limit(100);
    return data || [];
+  },
+  async adminDevices(){
+   const {data}=await sb.from('devices').select('*, profiles(username,email)').order('last_seen',{ascending:false}).limit(500);
+   return data||[];
   },
   async adminTx(){
    const {data} = await sb.from('transactions').select('*, profiles(username)').order('created_at',{ascending:false}).limit(200);
@@ -2806,7 +2827,7 @@ Views.admin=function(){
  if(!(window.CLOUD&&CLOUD.isStaff())){
   outlet().innerHTML=`<div class="empty" style="padding:80px 20px">${ic('lock',34)}<div class="t">${t('adm.denied')}</div><a class="btn" href="#/">${t('nav.lobby')}</a></div>`;return}
  outlet().innerHTML=`${pageHead(t('adm.title'),'RealWin backoffice')}
-  <div class="tabs rv in" style="margin-bottom:18px"><button class="tab act" data-t="users">${t('adm.users')}</button><button class="tab" data-t="tickets">${t('adm.tickets')}</button><button class="tab" data-t="tx">${t('adm.tx')}</button></div>
+  <div class="tabs rv in" style="margin-bottom:18px"><button class="tab act" data-t="users">${t('adm.users')}</button><button class="tab" data-t="tickets">${t('adm.tickets')}</button><button class="tab" data-t="tx">${t('adm.tx')}</button><button class="tab" data-t="devices">${t('adm.devices')}</button></div>
   <div class="card js-abody" style="padding:8px 6px"><div class="empty">${ic('refresh',30)}</div></div>`;
  const box=$('.js-abody');
  async function rUsers(){
@@ -2847,7 +2868,21 @@ Views.admin=function(){
    <td class="mono ${+x.amount>0?'up':''}" style="font-weight:700">${+x.amount>0?'+':''}${fc(+x.amount,x.coin)} ${x.coin}</td>
    <td class="dim" style="text-align:right;font-size:12px">${dts(Date.parse(x.created_at))}</td></tr>`).join('')}</tbody></table></div>`;
  }
- const render={users:rUsers,tickets:rTickets,tx:rTx};
+ async function rDevices(){
+  const ds=await CLOUD.adminDevices();
+  const byFp={};
+  ds.forEach(d=>{(byFp[d.fp]=byFp[d.fp]||[]).push(d)});
+  const multi=Object.values(byFp).map(g=>{const seen={};const users=g.filter(x=>{if(seen[x.user_id])return false;seen[x.user_id]=1;return true});return{fp:g[0].fp,users,ip:g[0].ip}}).filter(x=>x.users.length>1);
+  box.innerHTML=`<div class="dd-h" style="padding:10px 12px">${t('adm.multi')}</div>
+   ${multi.length?multi.map(m=>`<div class="wrow"><span class="badge red" style="flex:none">${m.users.length} ${t('adm.users2')}</span><span style="min-width:0;margin-left:8px"><span class="wn">${m.users.map(x=>esc(x.profiles?x.profiles.username:'?')).join(' \u00b7 ')}</span><br><span class="ws">${m.users.map(x=>esc(x.profiles?x.profiles.email:'')).join(' \u00b7 ')}</span><br><span class="ws mono">fp ${esc(m.fp.slice(0,16))}\u2026${m.ip?' \u00b7 IP '+esc(m.ip):''}</span></span></div>`).join(''):`<div class="empty" style="padding:22px">${ic('check',26)}<div class="t">${t('adm.nomulti')}</div></div>`}
+   <div class="dd-h" style="padding:16px 12px 10px">${t('adm.devices')}</div>
+   <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('feed.player')}</th><th>${t('adm.device')}</th><th>IP</th><th>TZ</th><th style="text-align:right">${t('adm.lastseen')}</th></tr></thead><tbody>
+   ${ds.slice(0,120).map(d=>`<tr><td style="font-weight:700">${esc(d.profiles?d.profiles.username:'\u2014')}<div class="dim" style="font-size:11px">${esc(d.profiles?d.profiles.email:'')}</div></td>
+    <td class="dim" style="font-size:12px">${esc((d.platform||'')+' \u00b7 '+(d.screen||''))}<div style="font-size:10.5px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.ua||'')}</div></td>
+    <td class="mono" style="font-size:12px">${esc(d.ip||'\u2014')}</td><td class="dim" style="font-size:11px">${esc(d.tz||'')}</td>
+    <td class="dim" style="text-align:right;font-size:12px">${dts(Date.parse(d.last_seen))}</td></tr>`).join('')}</tbody></table></div>`;
+ }
+ const render={users:rUsers,tickets:rTickets,tx:rTx,devices:rDevices};
  $$('.tabs .tab',outlet()).forEach(b=>b.onclick=()=>{$$('.tabs .tab',outlet()).forEach(x=>x.classList.toggle('act',x===b));box.innerHTML=`<div class="empty">${ic('refresh',30)}</div>`;render[b.dataset.t]()});
  rUsers();
 };

@@ -691,7 +691,7 @@ Views.admin=function(){
  if(!(window.CLOUD&&CLOUD.isStaff())){
   outlet().innerHTML=`<div class="empty" style="padding:80px 20px">${ic('lock',34)}<div class="t">${t('adm.denied')}</div><a class="btn" href="#/">${t('nav.lobby')}</a></div>`;return}
  outlet().innerHTML=`${pageHead(t('adm.title'),'RealWin backoffice')}
-  <div class="tabs rv in" style="margin-bottom:18px"><button class="tab act" data-t="users">${t('adm.users')}</button><button class="tab" data-t="tickets">${t('adm.tickets')}</button><button class="tab" data-t="tx">${t('adm.tx')}</button></div>
+  <div class="tabs rv in" style="margin-bottom:18px"><button class="tab act" data-t="users">${t('adm.users')}</button><button class="tab" data-t="tickets">${t('adm.tickets')}</button><button class="tab" data-t="tx">${t('adm.tx')}</button><button class="tab" data-t="devices">${t('adm.devices')}</button></div>
   <div class="card js-abody" style="padding:8px 6px"><div class="empty">${ic('refresh',30)}</div></div>`;
  const box=$('.js-abody');
  async function rUsers(){
@@ -732,7 +732,21 @@ Views.admin=function(){
    <td class="mono ${+x.amount>0?'up':''}" style="font-weight:700">${+x.amount>0?'+':''}${fc(+x.amount,x.coin)} ${x.coin}</td>
    <td class="dim" style="text-align:right;font-size:12px">${dts(Date.parse(x.created_at))}</td></tr>`).join('')}</tbody></table></div>`;
  }
- const render={users:rUsers,tickets:rTickets,tx:rTx};
+ async function rDevices(){
+  const ds=await CLOUD.adminDevices();
+  const byFp={};
+  ds.forEach(d=>{(byFp[d.fp]=byFp[d.fp]||[]).push(d)});
+  const multi=Object.values(byFp).map(g=>{const seen={};const users=g.filter(x=>{if(seen[x.user_id])return false;seen[x.user_id]=1;return true});return{fp:g[0].fp,users,ip:g[0].ip}}).filter(x=>x.users.length>1);
+  box.innerHTML=`<div class="dd-h" style="padding:10px 12px">${t('adm.multi')}</div>
+   ${multi.length?multi.map(m=>`<div class="wrow"><span class="badge red" style="flex:none">${m.users.length} ${t('adm.users2')}</span><span style="min-width:0;margin-left:8px"><span class="wn">${m.users.map(x=>esc(x.profiles?x.profiles.username:'?')).join(' \u00b7 ')}</span><br><span class="ws">${m.users.map(x=>esc(x.profiles?x.profiles.email:'')).join(' \u00b7 ')}</span><br><span class="ws mono">fp ${esc(m.fp.slice(0,16))}\u2026${m.ip?' \u00b7 IP '+esc(m.ip):''}</span></span></div>`).join(''):`<div class="empty" style="padding:22px">${ic('check',26)}<div class="t">${t('adm.nomulti')}</div></div>`}
+   <div class="dd-h" style="padding:16px 12px 10px">${t('adm.devices')}</div>
+   <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>${t('feed.player')}</th><th>${t('adm.device')}</th><th>IP</th><th>TZ</th><th style="text-align:right">${t('adm.lastseen')}</th></tr></thead><tbody>
+   ${ds.slice(0,120).map(d=>`<tr><td style="font-weight:700">${esc(d.profiles?d.profiles.username:'\u2014')}<div class="dim" style="font-size:11px">${esc(d.profiles?d.profiles.email:'')}</div></td>
+    <td class="dim" style="font-size:12px">${esc((d.platform||'')+' \u00b7 '+(d.screen||''))}<div style="font-size:10.5px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.ua||'')}</div></td>
+    <td class="mono" style="font-size:12px">${esc(d.ip||'\u2014')}</td><td class="dim" style="font-size:11px">${esc(d.tz||'')}</td>
+    <td class="dim" style="text-align:right;font-size:12px">${dts(Date.parse(d.last_seen))}</td></tr>`).join('')}</tbody></table></div>`;
+ }
+ const render={users:rUsers,tickets:rTickets,tx:rTx,devices:rDevices};
  $$('.tabs .tab',outlet()).forEach(b=>b.onclick=()=>{$$('.tabs .tab',outlet()).forEach(x=>x.classList.toggle('act',x===b));box.innerHTML=`<div class="empty">${ic('refresh',30)}</div>`;render[b.dataset.t]()});
  rUsers();
 };

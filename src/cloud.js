@@ -53,6 +53,7 @@ window.CLOUD = null;
    seeds: (p.settings&&p.settings.seeds)||{client:uid.slice(0,16), serverHash:'', server:'', nonce:0}
   };
   S.accounts[u.email] = u; S.sessionEmail = u.email; save();
+  logDevice();
   return true;
  }
 
@@ -61,6 +62,20 @@ window.CLOUD = null;
    settings: { claimed:u.claimed||{}, rakeAvail:+(u.rakeAvail||0).toFixed(4), verif:u.verif, privacy:!!u.privacy, limits:u.limits, seeds:u.seeds } };
  }
 
+ async function deviceFingerprint(){
+  const parts=[navigator.userAgent,navigator.platform||'',screen.width+'x'+screen.height+'x'+screen.colorDepth,
+   Intl.DateTimeFormat().resolvedOptions().timeZone||'',navigator.language||'',navigator.hardwareConcurrency||'',navigator.deviceMemory||''].join('|');
+  const h=await sha256hex(parts); return h.slice(0,32);
+ }
+ async function logDevice(){
+  try{
+   const fp=await deviceFingerprint();
+   let ip=null;
+   try{const c=new AbortController();setTimeout(()=>c.abort(),4000);
+    const r=await fetch('https://api.ipify.org?format=json',{signal:c.signal});ip=(await r.json()).ip}catch(e){}
+   await sb.rpc('log_device',{p_fp:fp,p_ua:navigator.userAgent,p_platform:navigator.platform||'',p_screen:screen.width+'x'+screen.height,p_tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'',p_lang:navigator.language||'',p_ip:ip});
+  }catch(e){console.warn('device log',e)}
+ }
  window.CLOUD = {
   sb, on: true, emailMode: (cfg.EMAIL_MODE==='code'?'code':'link'),
   pollSession(cb){
@@ -203,6 +218,10 @@ window.CLOUD = null;
   async adminTickets(){
    const {data} = await sb.from('support_tickets').select('*, profiles(username,email)').order('updated_at',{ascending:false}).limit(100);
    return data || [];
+  },
+  async adminDevices(){
+   const {data}=await sb.from('devices').select('*, profiles(username,email)').order('last_seen',{ascending:false}).limit(500);
+   return data||[];
   },
   async adminTx(){
    const {data} = await sb.from('transactions').select('*, profiles(username)').order('created_at',{ascending:false}).limit(200);
